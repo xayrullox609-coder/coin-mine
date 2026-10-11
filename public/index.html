@@ -35,8 +35,7 @@
   nav button.on{background:rgba(67,97,238,.14);color:var(--btn);font-weight:700}
   nav span{display:block;font-size:20px}
   #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);background:#181826;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;transition:transform .3s;z-index:9;max-width:90%;text-align:center}
- 
-#toast.show{transform:translate(-50%,0)}
+  #toast.show{transform:translate(-50%,0)}
   .note{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
   .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.25);margin:10px auto 0;max-width:240px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:#ffe27a;transition:width .4s}
@@ -91,8 +90,7 @@
   nav button.on{background:var(--nb);color:var(--nc)}
   .tapwrap{background:radial-gradient(circle at 50% 0%,#3a2a08,#120e06 60%,#0a0a10);border-radius:26px;padding:14px 12px 16px;color:#fff;border:1px solid #6b4e12;box-shadow:0 14px 40px rgba(180,120,0,.25)}
   .tpill{display:inline-block;border:1px solid #6b4e12;background:rgba(0,0,0,.35);color:#e9d8a6;border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;letter-spacing:.5px}
-  .cur{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto
-0;width:max-content;max-width:100%;border:1px solid #6b4e12;background:rgba(0,0,0,.4);border-radius:999px;padding:8px 14px;font-weight:800}
+  .cur{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto 0;width:max-content;max-width:100%;border:1px solid #6b4e12;background:rgba(0,0,0,.4);border-radius:999px;padding:8px 14px;font-weight:800}
   .cur b{font-size:17px}.cur .sep{width:1px;height:22px;background:#6b4e12}.cur span{display:flex;align-items:center}
   #diaplus{width:30px;height:30px;border-radius:50%;background:#f5b800;color:#2a1a00;font-weight:800;font-size:18px;line-height:1;padding:0}
   .tapwrap #coins{font-size:48px;color:#fff;margin:10px 0 4px}
@@ -122,17 +120,16 @@
   .gbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 12px;width:max-content;max-width:100%;padding:8px 14px;border-radius:999px;background:rgba(20,16,8,.93);color:#fff;border:1px solid #6b4e12;font-weight:800;backdrop-filter:blur(8px)}
   .gbar b{font-size:16px}.gbar .sep{width:1px;height:20px;background:#6b4e12}.gi{display:flex}
   .tapcoin{transition:transform .12s ease-out;will-change:transform}
-  .float{animation:up2 .8s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.5);z-index:30}
+  .float{position:fixed;left:0;top:0;pointer-events:none;font-weight:800;font-size:30px;line-height:1;color:#ffd45a;-webkit-text-stroke:1px rgba(120,70,0,.6);animation:up2 .8s ease-out forwards;text-shadow:0 2px 10px rgba(0,0,0,.55);z-index:30}
   @keyframes up2{0%{opacity:1;transform:translate(0,0) scale(.8)}100%{opacity:0;transform:translate(var(--dx,0),-110px) scale(1.4)}}
   .ripple{position:fixed;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid rgba(255,214,90,.9);pointer-events:none;animation:rp .6s ease-out forwards;z-index:29}
   @keyframes rp{to{transform:scale(7);opacity:0}}
   .spark{position:fixed;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#ffd45a;pointer-events:none;animation:sp .6s ease-out forwards;z-index:29}
   @keyframes sp{to{transform:translate(var(--sx),var(--sy)) scale(.2);opacity:0}}
-  .acts{display:flex;flex-direction:column;gap:6px}
-  .acts .buy{min-width:98px;padding:8px 10px;font-size:13px}
+  .acts{display:flex;flex-direction:column;gap:6px}.acts .buy{min-width:98px;padding:8px 10px;font-size:13px}
   .acts .go{background:linear-gradient(135deg,#0ea5e9,#3b82f6)}
   .done{color:#10b981;display:flex;padding:0 8px}
-/* Bosish bo'limi sahifa bilan bir butun */
+  /* Bosish bo'limi sahifa bilan bir butun */
   .tapwrap{background:none;border:0;box-shadow:none;padding:0 0 8px;color:var(--fg)}
   .tapwrap #coins{color:var(--fg)}
   .tapx,.wide,.en{background:var(--card);border-color:rgba(217,145,10,.45)}
@@ -163,6 +160,7 @@
   <div class="note" id="mode"></div>
 </section>
 <div id="modal" class="modal" hidden><div class="sheet" id="mbody"></div></div>
+
 <section id="v-bs" hidden>
   <h3><i data-ic="bolt"></i>Boost xizmatlari</h3>
   <div class="note" style="margin-top:-4px">Olmos bilan ijtimoiy tarmoq xizmatlariga buyurtma bering</div>
@@ -172,233 +170,94 @@
 </section>
 
 <section id="v-tk" hidden>
-  <h3 style="display:flex;justify-content:space-between;align-items:center">
-    <span><i data-ic="task"></i>Vazifalar</span>
-    <button id="plus" class="plus" aria-label="Vazifa qo'shish">
-      <i data-ic="plus" data-s="22"></i>
-    </button>
-  </h3>
-
+  <h3 style="display:flex;justify-content:space-between;align-items:center"><span><i data-ic="task"></i>Vazifalar</span> <button id="plus" class="plus" aria-label="Vazifa qo'shish"><i data-ic="plus" data-s="22"></i></button></h3>
   <div id="adform" class="card" hidden style="flex-direction:column;align-items:stretch">
     <div class="nm"><i data-ic="megaphone"></i>Kanalingizni reklama qiling</div>
-
     <input id="adch" placeholder="@kanal_username">
-
-    <input id="adneed" type="number" inputmode="numeric"
-      placeholder="Nechta obunachi kerak (5–10000)">
-
-    <div class="sub">
-      Narx: 1 obunachi = 2 olmos. Obunachi mukofot sifatida 1 olmos oladi.
-    </div>
-
+    <input id="adneed" type="number" inputmode="numeric" placeholder="Nechta obunachi kerak (5–10000)">
+    <div class="sub">Narx: 1 obunachi = 2 olmos. Obunachi mukofot sifatida 1 olmos oladi.</div>
     <div class="sub" id="adsum"></div>
-
-    <div class="sub" style="color:#e5484d;font-weight:600">
-      <i data-ic="alert" data-s="16"></i>
-      Muhim: avval botni kanalingizga admin qiling, aks holda vazifa qo'shilmaydi.
-    </div>
-
+    <div class="sub" style="color:#e5484d;font-weight:600"><i data-ic="alert" data-s="16"></i> Muhim: avval botni kanalingizga admin qiling, aks holda vazifa qo'shilmaydi.</div>
     <button class="primary" id="adpay" style="margin-top:10px"></button>
   </div>
-
   <div id="tasks"></div>
   <div id="adlist"></div>
-
-  <h3 id="myh" hidden>
-    <i data-ic="chart"></i>Mening vazifalarim
-  </h3>
-
+  <h3 id="myh" hidden><i data-ic="chart"></i>Mening vazifalarim</h3>
   <div id="myads"></div>
 </section>
 
 <section id="v-pf" hidden>
   <h3><i data-ic="user"></i>Profil</h3>
-
-  <button class="menu" id="menu-admin" data-p="admin" hidden>
-    <div class="ico" style="background:linear-gradient(135deg,#f97316,#dc2626)">
-      <i data-ic="shield" data-s="20"></i>
-    </div>
-    Admin panel<b>›</b>
-  </button>
-
-  <button class="menu" data-p="code">
-    <div class="ico" style="background:linear-gradient(135deg,#38bdf8,#2563eb)">
-      <i data-ic="hash" data-s="20"></i>
-    </div>
-    Kod<b>›</b>
-  </button>
-
-  <button class="menu" data-p="promo">
-    <div class="ico" style="background:linear-gradient(135deg,#34d399,#059669)">
-      <i data-ic="ticket" data-s="20"></i>
-    </div>
-    Promokod<b>›</b>
-  </button>
-
-  <button class="menu" data-p="buy">
-    <div class="ico" style="background:linear-gradient(135deg,#facc15,#d97706)">
-      <i data-ic="star" data-s="20"></i>
-    </div>
-    Coin va olmos sotib olish<b>›</b>
-  </button>
-
-  <button class="menu" data-p="top">
-    <div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
-      <i data-ic="trophy" data-s="20"></i>
-    </div>
-    Reyting<b>›</b>
-  </button>
-
-  <button class="menu" data-p="fr">
-    <div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)">
-      <i data-ic="users" data-s="20"></i>
-    </div>
-    Do'stlar<b>›</b>
-  </button>
+  <button class="menu" id="menu-admin" data-p="admin" hidden><div class="ico" style="background:linear-gradient(135deg,#f97316,#dc2626)"><i data-ic="shield" data-s="20"></i></div>Admin panel<b>›</b></button>
+  <button class="menu" data-p="code"><div class="ico" style="background:linear-gradient(135deg,#38bdf8,#2563eb)"><i data-ic="hash" data-s="20"></i></div>Kod<b>›</b></button>
+  <button class="menu" data-p="promo"><div class="ico" style="background:linear-gradient(135deg,#34d399,#059669)"><i data-ic="ticket" data-s="20"></i></div>Promokod<b>›</b></button>
+  <button class="menu" data-p="buy"><div class="ico" style="background:linear-gradient(135deg,#facc15,#d97706)"><i data-ic="star" data-s="20"></i></div>Coin va olmos sotib olish<b>›</b></button>
+  <button class="menu" data-p="top"><div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i data-ic="trophy" data-s="20"></i></div>Reyting<b>›</b></button>
+  <button class="menu" data-p="fr"><div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)"><i data-ic="users" data-s="20"></i></div>Do'stlar<b>›</b></button>
 
   <div id="p-buy" class="card col" hidden>
     <div class="nm">Coin va olmos sotib olish</div>
-
-    <div class="sub">
-      Telegram Stars bilan to'lanadi: 1 Stars = 1000 coin yoki 20 olmos.
-    </div>
-
-    <div class="mrow">
-      <button class="sb sel" id="kcoin">Coin</button>
-      <button class="sb own" id="kdia">Olmos</button>
-    </div>
-
-    <input id="stars" type="number" inputmode="numeric"
-      placeholder="Nechta Stars (1–2500)" value="1">
-
+    <div class="sub">Telegram Stars bilan to'lanadi: 1 Stars = 1000 coin yoki 20 olmos.</div>
+    <div class="mrow"><button class="sb sel" id="kcoin">Coin</button><button class="sb own" id="kdia">Olmos</button></div>
+    <input id="stars" type="number" inputmode="numeric" placeholder="Nechta Stars (1–2500)" value="1">
     <div class="sub" id="starsum"></div>
-
     <button class="primary" id="starpay"></button>
   </div>
-
   <div id="p-top" class="card col" hidden>
     <div class="nm">Eng yaxshi 10 talik</div>
     <div id="toplist"></div>
     <div class="note" id="myrank"></div>
   </div>
-
   <div id="p-fr" class="card col" hidden>
     <div class="nm">Do'stlarni taklif qiling</div>
-
-    <div class="sub">
-      Har bir do'st uchun +1000 coin, do'stingiz ham +1000 coin oladi.
-    </div>
-
-    <div class="note" id="refs"></div>
+    <div class="sub">Har bir do'st uchun +1000 coin, do'stingiz ham +1000 coin oladi.</div>    <div class="note" id="refs"></div>
     <div class="link" id="link"></div>
-
     <button class="primary" id="share">Do'stga yuborish</button>
   </div>
-
   <div id="p-code" class="card col" hidden>
     <div class="nm">Mening kodim</div>
-
-    <div class="sub">
-      5 ta harf va raqam. Do'stlaringiz shu kod orqali sizga coin yuboradi.
-      Har bir kod faqat bitta foydalanuvchiga tegishli.
-    </div>
-
+    <div class="sub">5 ta harf va raqam. Do'stlaringiz shu kod orqali sizga coin yuboradi. Har bir kod faqat bitta foydalanuvchiga tegishli.</div>
     <div class="sub" id="codehint" style="font-weight:600"></div>
-
-    <input id="mycode" class="code" maxlength="5"
-      autocapitalize="characters" autocomplete="off">
-
+    <input id="mycode" class="code" maxlength="5" autocapitalize="characters" autocomplete="off">
     <button class="primary" id="codesave">Kodni saqlash</button>
-
     <div class="nm" style="margin-top:16px">Coin yuborish</div>
-
-    <input id="sendto" class="code" maxlength="5"
-      placeholder="KOD" autocapitalize="characters" autocomplete="off">
-
-    <input id="sendamt" type="number" inputmode="numeric"
-      placeholder="Miqdor (kamida 10 coin)">
-
+    <input id="sendto" class="code" maxlength="5" placeholder="KOD" autocapitalize="characters" autocomplete="off">
+    <input id="sendamt" type="number" inputmode="numeric" placeholder="Miqdor (kamida 10 coin)">
     <button class="primary" id="sendbtn">Yuborish</button>
   </div>
 
   <div id="p-promo" class="card col" hidden>
     <div class="nm">Promokod</div>
-
-    <div class="sub">
-      Admin bergan promokodni kiriting va coin oling.
-      Har bir kod bir marta ishlatiladi.
-    </div>
-
-    <input id="promoin" placeholder="Promokod" maxlength="20"
-      autocapitalize="characters" autocomplete="off">
-
+    <div class="sub">Admin bergan promokodni kiriting va coin oling. Har bir kod bir marta ishlatiladi.</div>
+    <input id="promoin" placeholder="Promokod" maxlength="20" autocapitalize="characters" autocomplete="off">
     <button class="primary" id="promobtn">Faollashtirish</button>
   </div>
 
   <div id="p-admin" class="card col" hidden>
     <div class="nm">Admin panel</div>
     <div class="sub">Yangi promokod qo'shish</div>
-
-    <input id="apcode"
-      placeholder="Promokod (masalan YANGI100)"
-      maxlength="20" autocapitalize="characters" autocomplete="off">
-
-    <input id="aprew" type="number" inputmode="numeric"
-      placeholder="Mukofot (coin)">
-
-    <input id="apmax" type="number" inputmode="numeric"
-      placeholder="Necha kishi ishlatishi mumkin">
-
+    <input id="apcode" placeholder="Promokod (masalan YANGI100)" maxlength="20" autocapitalize="characters" autocomplete="off">
+    <input id="aprew" type="number" inputmode="numeric" placeholder="Mukofot (coin)">
+    <input id="apmax" type="number" inputmode="numeric" placeholder="Necha kishi ishlatishi mumkin">
     <button class="primary" id="apadd">Promokod qo'shish</button>
-
     <div id="aplist" style="margin-top:8px"></div>
-
     <div class="sub" style="margin-top:16px">O'zimga coin berish</div>
-
-    <input id="agive" type="number" inputmode="numeric"
-      placeholder="Miqdor">
-
+    <input id="agive" type="number" inputmode="numeric" placeholder="Miqdor">
     <button class="primary" id="agivebtn">Coin berish</button>
-
     <div class="sub" style="margin-top:16px">Coin olib qo'yish</div>
-
-    <input id="atcode"
-      placeholder="Foydalanuvchi kodi (bo'sh qoldirsangiz, o'zingizdan)"
-      maxlength="5" autocapitalize="characters"
-      autocomplete="off" style="text-transform:uppercase">
-
-    <input id="atamt" type="number" inputmode="numeric"
-      placeholder="Miqdor">
-
+    <input id="atcode" placeholder="Foydalanuvchi kodi (bo'sh qoldirsangiz, o'zingizdan)" maxlength="5" autocapitalize="characters" autocomplete="off" style="text-transform:uppercase">
+    <input id="atamt" type="number" inputmode="numeric" placeholder="Miqdor">
     <button class="primary" id="atbtn">Coin olib qo'yish</button>
-
-    <div class="sub" style="margin-top:16px;color:#e5484d;font-weight:600">
-      Xavfli amal
-    </div>
-
-    <button class="primary" id="resetbtn"
-      style="background:linear-gradient(135deg,#ef4444,#b91c1c)">
-      Hammaning coinini 0 qilish
-    </button>
+    <div class="sub" style="margin-top:16px;color:#e5484d;font-weight:600">Xavfli amal</div>
+    <button class="primary" id="resetbtn" style="background:linear-gradient(135deg,#ef4444,#b91c1c)">Hammaning coinini 0 qilish</button>
   </div>
 </section>
 
 <nav>
-  <button data-t="bs">
-    <span><i data-ic="bolt" data-s="22"></i></span>Boost
-  </button>
-
-  <button data-t="mine" class="on">
-    <span><i data-ic="tap" data-s="22"></i></span>Bosish
-  </button>
-
-  <button data-t="tk">
-    <span><i data-ic="task" data-s="22"></i></span>Vazifalar
-  </button>
-
-  <button data-t="pf">
-    <span><i data-ic="user" data-s="22"></i></span>Profil
-  </button>
+  <button data-t="bs"><span><i data-ic="bolt" data-s="22"></i></span>Boost</button>
+  <button data-t="mine" class="on"><span><i data-ic="tap" data-s="22"></i></span>Bosish</button>
+  <button data-t="tk"><span><i data-ic="task" data-s="22"></i></span>Vazifalar</button>
+  <button data-t="pf"><span><i data-ic="user" data-s="22"></i></span>Profil</button>
 </nav>
 
 <script>
@@ -490,14 +349,12 @@ async function api(action,i,x){
   if(action==='order'){const it=SVI[x.svc],cnt=Math.floor(+x.count),tgt=String(x.target||'').trim();
     if(!it)err='gone';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
     else{r.diamonds-=it.p*cnt;r.orders.unshift({id:Date.now(),svc:x.svc,count:cnt,total:it.p*cnt,status:'new'});}}
-  if(action==='buy_stars')err='demo_pay';
-  if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
+  if(action==='buy_stars')err='demo_pay';if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
   if(action==='buy'){if(!(i>=1&&i<SK.length)||r.skins.includes(i))err='gone';else if(!r.skins.includes(i-1))err='locked';else if(r.diamonds<SK[i].cost)err='diamonds';else{r.diamonds-=SK[i].cost;r.skins.push(i);r.skin=i;}}
   if(action==='select'){if(r.skins.includes(i))r.skin=i;else err='locked';}
   if(action==='exchange'){const n=Math.floor(+x.n);if(!(n>=1&&n<=100000))err='bad_amount';else if(r.coins<n*EXCH)err='funds';else{r.coins-=n*EXCH;r.diamonds+=n;}}
   if(action==='refill'){if(r.diamonds<REFILL)err='diamonds';else{r.diamonds-=REFILL;r.taps=0;}}
- 
-if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
+  if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
   if(action==='task'){const T=TASKS.find(x=>x.id===i);
     if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&r.skins.length>=3))){r.coins+=T.r;r.tasks.push(T.id);}}
   r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:1,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:1,owner:1}];
@@ -665,7 +522,7 @@ function showTop(d){
   $('myrank').textContent='Sizning o\'rningiz: #'+d.rank;
 }
 
-function link(){return `https://t.me/${s.bot}?start=ref_${s.me}`}
+function link(){return `https://t.me/${String(s.bot||'').replace(/^@/,'')}?start=ref_${s.me}`}
 function showFriends(){
   if(!s)return;
   $('refs').textContent='Taklif qilingan do\'stlar: '+s.refs;
@@ -731,8 +588,7 @@ function adCheck(){
   if(!(v.need>=5&&v.need<=10000))return{v,msg:"Obunachi soni 5 dan 10 000 gacha bo'lsin"};
   if(s.diamonds<v.total)return{v,msg:'Olmos yetarli emas: kerak '+v.total+', sizda '+s.diamonds};
   return{v};
-}
-function adUpdate(){
+}function adUpdate(){
   const c=adCheck();
   $('adsum').textContent=c.msg||`Jami: ${c.v.total} olmos (sizda: ${s.diamonds})`;
   $('adpay').innerHTML=c.v.total>0?ic('card',18)+" To'lash va qo'shish · "+c.v.total+' olmos':ic('plus',18)+" Qo'shish";
@@ -780,8 +636,7 @@ $('codesave').onclick=()=>{
   if(!/^[A-Z0-9]{5}$/.test(c)){toast(errMsg('code_bad'));return;}
   if(c===s.code){toast(errMsg('code_same'));return;}
   const go=()=>act('code_set',null,{code:c}),msg=`Kodni ${c} ga o'zgartirasizmi? Keyin qayta o'zgartirib bo'lmaydi.`;
- 
-if(tg&&tg.showConfirm)tg.showConfirm(msg,ok=>{if(ok)go();});else if(confirm(msg))go();
+  if(tg&&tg.showConfirm)tg.showConfirm(msg,ok=>{if(ok)go();});else if(confirm(msg))go();
 };
 $('sendbtn').onclick=()=>act('send',null,{to:$('sendto').value,amount:$('sendamt').value});
 $('promobtn').onclick=()=>act('promo',null,{code:$('promoin').value});
