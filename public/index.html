@@ -35,76 +35,437 @@
   nav button.on{background:rgba(67,97,238,.14);color:var(--btn);font-weight:700}
   nav span{display:block;font-size:20px}
   #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);background:#181826;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;transition:transform .3s;z-index:9;max-width:90%;text-align:center}
-  #toast.show{transform:translate(-50%,0)}
+ 
+#toast.show{transform:translate(-50%,0)}
   .note{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
   .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.25);margin:10px auto 0;max-width:240px;overflow:hidden}
   .bar i{display:block;height:100%;width:0;background:#ffe27a;transition:width .4s}
   .plus{width:36px;height:36px;border-radius:50%;background:var(--btn);color:#fff;font-size:22px;line-height:1;padding:0}
   input{width:100%;padding:11px;margin:6px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:inherit}
+  .i{vertical-align:-4px;flex:none}
+  .c{vertical-align:-3px;margin-right:4px;flex:none}
+  .ico{display:flex;align-items:center;justify-content:center;width:46px;height:46px;border-radius:14px;color:#fff;font-size:inherit;background:linear-gradient(135deg,#4361ee,#7a3cff)}
+  .medal{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;font-size:12px;font-weight:800;color:#fff;margin-right:8px;background:var(--muted)}
+  .m1{background:linear-gradient(135deg,#ffd45a,#e89b00)}.m2{background:linear-gradient(135deg,#d7dbe5,#98a1b3)}.m3{background:linear-gradient(135deg,#e0a46a,#b46a2c)}
+  h3 .i{margin-right:8px;color:var(--btn)}
+  nav span svg{display:block;margin:0 auto 3px}
+  #coins{display:flex;align-items:center;justify-content:center;gap:8px}
+  .plus{display:flex;align-items:center;justify-content:center}
+  .buy,.primary,#bonus{display:inline-flex;align-items:center;justify-content:center;gap:6px}
+  .menu{display:flex;align-items:center;gap:12px;width:100%;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:10px;color:var(--fg);font-weight:700;text-align:left}
+  .menu .ico{width:40px;height:40px}
+  .menu b{margin-left:auto;color:var(--muted);font-weight:400}
+  .col{flex-direction:column;align-items:stretch}
+  .col .primary{margin-top:8px}
+  .code{font-weight:800;letter-spacing:5px;text-align:center;text-transform:uppercase;font-size:20px}
+  /* Rang-barang tema */
+  body{background:radial-gradient(circle at 0% 0%,rgba(99,102,241,.22),transparent 45%),radial-gradient(circle at 100% 15%,rgba(236,72,153,.18),transparent 45%),radial-gradient(circle at 15% 100%,rgba(20,184,166,.20),transparent 45%),radial-gradient(circle at 100% 100%,rgba(245,158,11,.16),transparent 40%),var(--bg);background-attachment:fixed}
+  .hero{background:linear-gradient(135deg,#6366f1 0%,#a855f7 35%,#ec4899 70%,#f59e0b 100%);box-shadow:0 12px 32px rgba(168,85,247,.35)}
+  .bar i{background:linear-gradient(90deg,#fde047,#fb923c,#f472b6)}
+  .card,.row{--a:#6366f1;--b:#8b5cf6}
+  .card:nth-child(5n+2),.row:nth-child(5n+2){--a:#14b8a6;--b:#22c55e}
+  .card:nth-child(5n+3),.row:nth-child(5n+3){--a:#f97316;--b:#ec4899}
+  .card:nth-child(5n+4),.row:nth-child(5n+4){--a:#0ea5e9;--b:#3b82f6}
+  .card:nth-child(5n+5),.row:nth-child(5n+5){--a:#f59e0b;--b:#ef4444}
+  .card{border-left:4px solid var(--a);background:var(--card);background:linear-gradient(100deg,color-mix(in srgb,var(--a) 12%,var(--card)),var(--card) 60%)}
+  .ico{background:linear-gradient(135deg,var(--a),var(--b))}
+  .buy{background:linear-gradient(135deg,var(--a),var(--b))}
+  .row{border-left:4px solid var(--a);padding-left:10px;border-radius:8px;margin-bottom:6px;border-bottom:0;background:var(--card)}
+  .row.me{background:rgba(168,85,247,.22)}
+  .primary{background:linear-gradient(135deg,#6366f1,#a855f7 50%,#ec4899)}
+  .plus{background:linear-gradient(135deg,#14b8a6,#6366f1)}
+  #bonus{background:#fff;color:#a21caf}
+  .link{border-left:4px solid #14b8a6}
+  .menu{border-left:4px solid #a855f7}
+  #toast{background:linear-gradient(135deg,#6366f1,#ec4899)}
+  input:focus{outline:2px solid #a855f7;border-color:transparent}
+  h3 .i{color:#ec4899}
+  #v-top h3 .i{color:#f59e0b}#v-fr h3 .i{color:#14b8a6}#v-tk h3 .i{color:#6366f1}#v-pf h3 .i{color:#0ea5e9}
+  nav{border-top:0;box-shadow:0 -4px 20px rgba(99,102,241,.18)}
+  nav button:nth-child(1){--nc:#6366f1;--nb:rgba(99,102,241,.16)}
+  nav button:nth-child(2){--nc:#ec4899;--nb:rgba(236,72,153,.16)}
+  nav button:nth-child(3){--nc:#14b8a6;--nb:rgba(20,184,166,.16)}
+  nav button:nth-child(4){--nc:#f59e0b;--nb:rgba(245,158,11,.18)}
+  nav button:nth-child(5){--nc:#0ea5e9;--nb:rgba(14,165,233,.16)}
+  nav button span{color:var(--nc)}
+  nav button.on{background:var(--nb);color:var(--nc)}
+  .tapwrap{background:radial-gradient(circle at 50% 0%,#3a2a08,#120e06 60%,#0a0a10);border-radius:26px;padding:14px 12px 16px;color:#fff;border:1px solid #6b4e12;box-shadow:0 14px 40px rgba(180,120,0,.25)}
+  .tpill{display:inline-block;border:1px solid #6b4e12;background:rgba(0,0,0,.35);color:#e9d8a6;border-radius:999px;padding:7px 14px;font-weight:700;font-size:13px;letter-spacing:.5px}
+  .cur{display:flex;align-items:center;justify-content:center;gap:10px;margin:12px auto
+0;width:max-content;max-width:100%;border:1px solid #6b4e12;background:rgba(0,0,0,.4);border-radius:999px;padding:8px 14px;font-weight:800}
+  .cur b{font-size:17px}.cur .sep{width:1px;height:22px;background:#6b4e12}.cur span{display:flex;align-items:center}
+  #diaplus{width:30px;height:30px;border-radius:50%;background:#f5b800;color:#2a1a00;font-weight:800;font-size:18px;line-height:1;padding:0}
+  .tapwrap #coins{font-size:48px;color:#fff;margin:10px 0 4px}
+  .tapx{display:block;margin:6px auto 0;width:max-content;border:1px solid #6b4e12;border-radius:999px;padding:6px 18px;color:#f5c542;font-weight:800;background:rgba(0,0,0,.3)}
+  .tapcoin{display:block;margin:14px auto;background:none;border:0;padding:0;width:min(250px,64vw);height:min(250px,64vw);border-radius:50%;filter:drop-shadow(0 12px 30px rgba(245,184,0,.35));touch-action:manipulation;user-select:none}
+  .tapcoin svg{width:100%;height:100%;pointer-events:none}
+  .two{display:flex;gap:10px}
+  .wide{flex:1;padding:14px;border:1px solid #6b4e12;background:rgba(0,0,0,.4);color:#f5c542;font-weight:800;letter-spacing:.5px;display:flex;align-items:center;justify-content:center;gap:8px}
+  .en{margin-top:12px;border:1px solid #6b4e12;border-radius:18px;padding:12px 14px;background:rgba(0,0,0,.4)}
+  .er{display:flex;justify-content:space-between;font-weight:800}.er span{color:#f5c542}
+  .eb{height:12px;border-radius:6px;background:#2b2412;margin-top:10px;overflow:hidden}
+  .eb i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#fde047,#f59e0b,#f97316);transition:width .2s}
+  .tapwrap #bonus{width:100%;margin-top:12px;background:linear-gradient(135deg,#6366f1,#ec4899);color:#fff}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.65);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+  .sheet{width:100%;max-width:480px;max-height:88vh;overflow:auto;background:#17130a;color:#fff;border:1px solid #6b4e12;border-radius:26px 26px 0 0;padding:18px 14px calc(18px + env(safe-area-inset-bottom,0px))}
+  .mh{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px}
+  .mh h2{margin:0;font-size:22px}.mh p{margin:4px 0 0;color:#b8a36a;font-size:14px}
+  .mx{width:40px;height:40px;border-radius:50%;border:1px solid #6b4e12;background:rgba(0,0,0,.3);color:#f5c542;font-size:22px;padding:0}
+  .sgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .sk{border:1px solid #5a4210;border-radius:20px;background:#1d180c;padding:14px 8px 10px;text-align:center}
+  .skc{position:relative;width:92px;height:92px;margin:0 auto}
+  .price{position:absolute;top:-4px;right:-12px;background:rgba(0,0,0,.8);border:1px solid #6b4e12;border-radius:999px;padding:2px 8px;font-size:12px;font-weight:800;color:#38bdf8;display:flex;align-items:center;gap:3px}
+  .skn{font-weight:800;margin-top:10px}.sks{font-size:12px;color:#b8a36a;margin:2px 0 8px}
+  .sb{width:100%;padding:11px 4px;font-weight:800;font-size:13px;border-radius:12px}
+  .sb.sel{background:#10b981;color:#fff}.sb.own{background:#334155;color:#fff}.sb.buyb{background:#f2b53c;color:#2a1a00}.sb.lock{background:#2b2412;color:#7a6a40}
+  .mrow{display:flex;gap:8px}.mrow input{margin:0}
+  .gbar{position:sticky;top:0;z-index:6;display:flex;align-items:center;justify-content:center;gap:10px;margin:0 auto 12px;width:max-content;max-width:100%;padding:8px 14px;border-radius:999px;background:rgba(20,16,8,.93);color:#fff;border:1px solid #6b4e12;font-weight:800;backdrop-filter:blur(8px)}
+  .gbar b{font-size:16px}.gbar .sep{width:1px;height:20px;background:#6b4e12}.gi{display:flex}
+  .tapcoin{transition:transform .12s ease-out;will-change:transform}
+  .float{animation:up2 .8s ease-out forwards;text-shadow:0 2px 8px rgba(0,0,0,.5);z-index:30}
+  @keyframes up2{0%{opacity:1;transform:translate(0,0) scale(.8)}100%{opacity:0;transform:translate(var(--dx,0),-110px) scale(1.4)}}
+  .ripple{position:fixed;width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;border:3px solid rgba(255,214,90,.9);pointer-events:none;animation:rp .6s ease-out forwards;z-index:29}
+  @keyframes rp{to{transform:scale(7);opacity:0}}
+  .spark{position:fixed;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#ffd45a;pointer-events:none;animation:sp .6s ease-out forwards;z-index:29}
+  @keyframes sp{to{transform:translate(var(--sx),var(--sy)) scale(.2);opacity:0}}
+  .acts{display:flex;flex-direction:column;gap:6px}
+  .acts .buy{min-width:98px;padding:8px 10px;font-size:13px}
+  .acts .go{background:linear-gradient(135deg,#0ea5e9,#3b82f6)}
+  .done{color:#10b981;display:flex;padding:0 8px}
+/* Bosish bo'limi sahifa bilan bir butun */
+  .tapwrap{background:none;border:0;box-shadow:none;padding:0 0 8px;color:var(--fg)}
+  .tapwrap #coins{color:var(--fg)}
+  .tapx,.wide,.en{background:var(--card);border-color:rgba(217,145,10,.45)}
+  .tapx,.wide{color:#d9910a}
+  .er b{color:var(--fg)}.eb{background:rgba(128,128,128,.25)}
+  .sheet input{background:#0f0c06;color:#fff;border:1px solid #6b4e12}
+  .sheet .card{color:var(--fg)}
+  .phead{display:flex;align-items:center;gap:12px;cursor:pointer}
   [hidden]{display:none!important}
 </style>
 </head>
 <body>
 <div id="toast"></div>
+<div class="gbar"><span id="gd" class="gi"></span><b id="gdn">0</b><button id="diaplus" aria-label="Olmos sotib olish">+</button><i class="sep"></i><span id="gc" class="gi"></span><b id="gcn">0</b></div>
 
 <section id="v-mine">
-  <div class="hero">
-    <div class="title" id="rank"></div>
-    <div id="coins">0</div>
-    <div id="rate"></div>
-    <div class="bar"><i id="pb"></i></div>
+  <div class="tapwrap">
+        <div id="coins"></div>
+    <div class="tapx" id="tapx">Tap x 1</div>
+    <button class="tapcoin" id="tapcoin" aria-label="Tanga"></button>
+    <div class="two">
+      <button class="wide" id="boostbtn"><i data-ic="bolt" data-s="20"></i>ENERGIYA</button>
+      <button class="wide" id="shopbtn"><i data-ic="store" data-s="20"></i>DO'KON</button>
+    </div>
+    <div class="en"><div class="er"><span><i data-ic="bolt" data-s="18"></i> ENERGY</span><b id="etext">0/0</b></div><div class="eb"><i id="efill"></i></div></div>
     <button id="bonus"></button>
   </div>
-  <div id="list"></div>
   <div class="note" id="mode"></div>
 </section>
-
-<section id="v-top" hidden>
-  <h3>🏆 Eng yaxshi 10 talik</h3>
-  <div id="toplist"></div>
-  <div class="note" id="myrank"></div>
-</section>
-
-<section id="v-fr" hidden>
-  <h3>👥 Do'stlarni taklif qiling</h3>
-  <div class="card"><div class="ico">🎁</div><div class="info"><div class="nm">Har bir do'st uchun +1000 🪙</div><div class="sub">Do'stingiz ham +1000 oladi</div></div></div>
-  <div class="note" id="refs"></div>
-  <div class="link" id="link"></div>
-  <button class="primary" id="share">Do'stga yuborish</button>
+<div id="modal" class="modal" hidden><div class="sheet" id="mbody"></div></div>
+<section id="v-bs" hidden>
+  <h3><i data-ic="bolt"></i>Boost xizmatlari</h3>
+  <div class="note" style="margin-top:-4px">Olmos bilan ijtimoiy tarmoq xizmatlariga buyurtma bering</div>
+  <div id="svlist"></div>
+  <h3 id="ordh" hidden><i data-ic="chart"></i>Mening buyurtmalarim</h3>
+  <div id="ordlist"></div>
 </section>
 
 <section id="v-tk" hidden>
-  <h3 style="display:flex;justify-content:space-between;align-items:center">✅ Vazifalar <button id="plus" class="plus">+</button></h3>
+  <h3 style="display:flex;justify-content:space-between;align-items:center">
+    <span><i data-ic="task"></i>Vazifalar</span>
+    <button id="plus" class="plus" aria-label="Vazifa qo'shish">
+      <i data-ic="plus" data-s="22"></i>
+    </button>
+  </h3>
+
   <div id="adform" class="card" hidden style="flex-direction:column;align-items:stretch">
-    <div class="nm">📣 Kanalingizni reklama qiling</div>
+    <div class="nm"><i data-ic="megaphone"></i>Kanalingizni reklama qiling</div>
+
     <input id="adch" placeholder="@kanal_username">
-    <input id="adneed" type="number" inputmode="numeric" placeholder="Nechta obunachi kerak (5–10000)">
-    <input id="adprice" type="number" inputmode="numeric" placeholder="Har bir obunachi uchun coin (10–5000)">
+
+    <input id="adneed" type="number" inputmode="numeric"
+      placeholder="Nechta obunachi kerak (5–10000)">
+
+    <div class="sub">
+      Narx: 1 obunachi = 2 olmos. Obunachi mukofot sifatida 1 olmos oladi.
+    </div>
+
     <div class="sub" id="adsum"></div>
-    <div class="sub" style="color:#e5484d;font-weight:600">⚠️ Muhim: avval botni kanalingizga admin qiling, aks holda vazifa qo'shilmaydi.</div>
+
+    <div class="sub" style="color:#e5484d;font-weight:600">
+      <i data-ic="alert" data-s="16"></i>
+      Muhim: avval botni kanalingizga admin qiling, aks holda vazifa qo'shilmaydi.
+    </div>
+
     <button class="primary" id="adpay" style="margin-top:10px"></button>
   </div>
+
   <div id="tasks"></div>
   <div id="adlist"></div>
-  <h3 id="myh" hidden>📊 Mening vazifalarim</h3>
+
+  <h3 id="myh" hidden>
+    <i data-ic="chart"></i>Mening vazifalarim
+  </h3>
+
   <div id="myads"></div>
 </section>
 
+<section id="v-pf" hidden>
+  <h3><i data-ic="user"></i>Profil</h3>
+
+  <button class="menu" id="menu-admin" data-p="admin" hidden>
+    <div class="ico" style="background:linear-gradient(135deg,#f97316,#dc2626)">
+      <i data-ic="shield" data-s="20"></i>
+    </div>
+    Admin panel<b>›</b>
+  </button>
+
+  <button class="menu" data-p="code">
+    <div class="ico" style="background:linear-gradient(135deg,#38bdf8,#2563eb)">
+      <i data-ic="hash" data-s="20"></i>
+    </div>
+    Kod<b>›</b>
+  </button>
+
+  <button class="menu" data-p="promo">
+    <div class="ico" style="background:linear-gradient(135deg,#34d399,#059669)">
+      <i data-ic="ticket" data-s="20"></i>
+    </div>
+    Promokod<b>›</b>
+  </button>
+
+  <button class="menu" data-p="buy">
+    <div class="ico" style="background:linear-gradient(135deg,#facc15,#d97706)">
+      <i data-ic="star" data-s="20"></i>
+    </div>
+    Coin va olmos sotib olish<b>›</b>
+  </button>
+
+  <button class="menu" data-p="top">
+    <div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)">
+      <i data-ic="trophy" data-s="20"></i>
+    </div>
+    Reyting<b>›</b>
+  </button>
+
+  <button class="menu" data-p="fr">
+    <div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)">
+      <i data-ic="users" data-s="20"></i>
+    </div>
+    Do'stlar<b>›</b>
+  </button>
+
+  <div id="p-buy" class="card col" hidden>
+    <div class="nm">Coin va olmos sotib olish</div>
+
+    <div class="sub">
+      Telegram Stars bilan to'lanadi: 1 Stars = 1000 coin yoki 20 olmos.
+    </div>
+
+    <div class="mrow">
+      <button class="sb sel" id="kcoin">Coin</button>
+      <button class="sb own" id="kdia">Olmos</button>
+    </div>
+
+    <input id="stars" type="number" inputmode="numeric"
+      placeholder="Nechta Stars (1–2500)" value="1">
+
+    <div class="sub" id="starsum"></div>
+
+    <button class="primary" id="starpay"></button>
+  </div>
+
+  <div id="p-top" class="card col" hidden>
+    <div class="nm">Eng yaxshi 10 talik</div>
+    <div id="toplist"></div>
+    <div class="note" id="myrank"></div>
+  </div>
+
+  <div id="p-fr" class="card col" hidden>
+    <div class="nm">Do'stlarni taklif qiling</div>
+
+    <div class="sub">
+      Har bir do'st uchun +1000 coin, do'stingiz ham +1000 coin oladi.
+    </div>
+
+    <div class="note" id="refs"></div>
+    <div class="link" id="link"></div>
+
+    <button class="primary" id="share">Do'stga yuborish</button>
+  </div>
+
+  <div id="p-code" class="card col" hidden>
+    <div class="nm">Mening kodim</div>
+
+    <div class="sub">
+      5 ta harf va raqam. Do'stlaringiz shu kod orqali sizga coin yuboradi.
+      Har bir kod faqat bitta foydalanuvchiga tegishli.
+    </div>
+
+    <div class="sub" id="codehint" style="font-weight:600"></div>
+
+    <input id="mycode" class="code" maxlength="5"
+      autocapitalize="characters" autocomplete="off">
+
+    <button class="primary" id="codesave">Kodni saqlash</button>
+
+    <div class="nm" style="margin-top:16px">Coin yuborish</div>
+
+    <input id="sendto" class="code" maxlength="5"
+      placeholder="KOD" autocapitalize="characters" autocomplete="off">
+
+    <input id="sendamt" type="number" inputmode="numeric"
+      placeholder="Miqdor (kamida 10 coin)">
+
+    <button class="primary" id="sendbtn">Yuborish</button>
+  </div>
+
+  <div id="p-promo" class="card col" hidden>
+    <div class="nm">Promokod</div>
+
+    <div class="sub">
+      Admin bergan promokodni kiriting va coin oling.
+      Har bir kod bir marta ishlatiladi.
+    </div>
+
+    <input id="promoin" placeholder="Promokod" maxlength="20"
+      autocapitalize="characters" autocomplete="off">
+
+    <button class="primary" id="promobtn">Faollashtirish</button>
+  </div>
+
+  <div id="p-admin" class="card col" hidden>
+    <div class="nm">Admin panel</div>
+    <div class="sub">Yangi promokod qo'shish</div>
+
+    <input id="apcode"
+      placeholder="Promokod (masalan YANGI100)"
+      maxlength="20" autocapitalize="characters" autocomplete="off">
+
+    <input id="aprew" type="number" inputmode="numeric"
+      placeholder="Mukofot (coin)">
+
+    <input id="apmax" type="number" inputmode="numeric"
+      placeholder="Necha kishi ishlatishi mumkin">
+
+    <button class="primary" id="apadd">Promokod qo'shish</button>
+
+    <div id="aplist" style="margin-top:8px"></div>
+
+    <div class="sub" style="margin-top:16px">O'zimga coin berish</div>
+
+    <input id="agive" type="number" inputmode="numeric"
+      placeholder="Miqdor">
+
+    <button class="primary" id="agivebtn">Coin berish</button>
+
+    <div class="sub" style="margin-top:16px">Coin olib qo'yish</div>
+
+    <input id="atcode"
+      placeholder="Foydalanuvchi kodi (bo'sh qoldirsangiz, o'zingizdan)"
+      maxlength="5" autocapitalize="characters"
+      autocomplete="off" style="text-transform:uppercase">
+
+    <input id="atamt" type="number" inputmode="numeric"
+      placeholder="Miqdor">
+
+    <button class="primary" id="atbtn">Coin olib qo'yish</button>
+
+    <div class="sub" style="margin-top:16px;color:#e5484d;font-weight:600">
+      Xavfli amal
+    </div>
+
+    <button class="primary" id="resetbtn"
+      style="background:linear-gradient(135deg,#ef4444,#b91c1c)">
+      Hammaning coinini 0 qilish
+    </button>
+  </div>
+</section>
+
 <nav>
-  <button data-t="mine" class="on"><span>⛏️</span>Kon</button>
-  <button data-t="top"><span>🏆</span>Reyting</button>
-  <button data-t="fr"><span>👥</span>Do'stlar</button>
-  <button data-t="tk"><span>✅</span>Vazifalar</button>
+  <button data-t="bs">
+    <span><i data-ic="bolt" data-s="22"></i></span>Boost
+  </button>
+
+  <button data-t="mine" class="on">
+    <span><i data-ic="tap" data-s="22"></i></span>Bosish
+  </button>
+
+  <button data-t="tk">
+    <span><i data-ic="task" data-s="22"></i></span>Vazifalar
+  </button>
+
+  <button data-t="pf">
+    <span><i data-ic="user" data-s="22"></i></span>Profil
+  </button>
 </nav>
 
 <script>
-const UPG=[{n:'Kichik kon',e:'⛏️',base:50,inc:0.5},{n:'Ekskavator',e:'🚜',base:400,inc:3},{n:'Zavod',e:'🏭',base:3000,inc:15},{n:'Robot armiya',e:'🤖',base:25000,inc:80}];
-const CAP=10800,BONUS=500,DAY=864e5;
-const income=l=>l.reduce((s,v,i)=>s+v*UPG[i].inc,0);
-const cost=(i,lv)=>Math.floor(UPG[i].base*1.6**lv);
+const IC={
+ gem:'<path d="M6 3h12l4 6-10 13L2 9Z"/><path d="M11 3 8 9l4 13 4-13-3-6"/><path d="M2 9h20"/>',
+ truck:'<path d="M10 17h4V5H2v12h3"/><path d="M20 17h2v-3.34a4 4 0 0 0-1.17-2.83L19 9h-5"/><path d="M14 17h1"/><circle cx="7.5" cy="17.5" r="2.5"/><circle cx="17.5" cy="17.5" r="2.5"/>',
+ factory:'<path d="M2 20a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8l-7 5V8l-7 5V4a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"/><path d="M17 18h1"/><path d="M12 18h1"/><path d="M7 18h1"/>',
+ bot:'<path d="M12 8V4H8"/><rect width="16" height="12" x="4" y="8" rx="2"/><path d="M2 14h2"/><path d="M20 14h2"/><path d="M15 13v2"/><path d="M9 13v2"/>',
+ mountain:'<path d="m8 3 4 8 5-5 5 15H2L8 3z"/>',
+ trophy:'<path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-1.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98 1.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/>',
+ users:'<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+ task:'<circle cx="12" cy="12" r="10"/><path d="m9 12 2 2 4-4"/>',
+ gift:'<rect x="3" y="8" width="18" height="4" rx="1"/><path d="M12 8v13"/><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"/><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"/>',
+ megaphone:'<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+ send:'<path d="m22 2-7 20-4-9-9-4Z"/><path d="M22 2 11 13"/>',
+ chart:'<path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>',
+ check:'<path d="M20 6 9 17l-5-5"/>',
+ alert:'<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+ card:'<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',
+ plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
+ layers:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
+ leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
+ crown:'<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/>',
+ user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+ shield:'<path d="M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
+ ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
+ hash:'<path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3 8 21"/><path d="M16 3l-2 18"/>',
+ tap:'<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/>',
+ bolt:'<path d="M13 2 3 14h9l-1 8 10-12h-9z"/>',
+ store:'<path d="M3 9l1-5h16l1 5"/><path d="M4 9v11h16V9"/><path d="M9 20v-6h6v6"/>',
+ star:'<path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z"/>',
+ camera:'<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/>',
+ play:'<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/>',
+ gamepad:'<path d="M6 12h4M8 10v4"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><path d="M17.3 5H6.7a4 4 0 0 0-3.9 3.1l-1.5 6.5A3 3 0 0 0 4.2 18c.9 0 1.7-.5 2.1-1.2L7 15h10l.7 1.8c.4.7 1.2 1.2 2.1 1.2a3 3 0 0 0 2.9-3.4l-1.5-6.5A4 4 0 0 0 17.3 5z"/>',
+ music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'
+};
+const ic=(n,s=20)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
+const coin=(s=16)=>`<svg class="c" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#f5b800" stroke="#c98a00" stroke-width="1.2"/><circle cx="12" cy="12" r="7.3" fill="none" stroke="#c98a00" stroke-width="1.4"/><path d="M13.9 9.3a3 3 0 1 0 0 5.4" fill="none" stroke="#c98a00" stroke-width="1.8" stroke-linecap="round"/></svg>`;
+document.querySelectorAll('[data-ic]').forEach(e=>{e.outerHTML=ic(e.dataset.ic,+e.dataset.s||20)});
+const SK=[
+ {n:'Classic',cost:0,m:1,cap:500,c:['#fff2a8','#f5b800','#b87400'],e:'crown'},
+ {n:'Ruby',cost:199,m:2,cap:500,c:['#ffc9c9','#ef4444','#7f1d1d'],e:'gem'},
+ {n:'Emerald',cost:199,m:2,cap:500,c:['#c4f7da','#10b981','#065f46'],e:'star'},
+ {n:'Sapphire',cost:499,m:3,cap:800,c:['#c7defe','#3b82f6','#1e3a8a'],e:'bolt'},
+ {n:'Amethyst',cost:899,m:3,cap:800,c:['#ecdcff','#a855f7','#581c87'],e:'gem'},
+ {n:'Topaz',cost:899,m:3,cap:800,c:['#ffe0c2','#f97316','#7c2d12'],e:'star'},
+ {n:'Pearl',cost:1299,m:4,cap:1000,c:['#ffffff','#cbd5e1','#64748b'],e:'crown'},
+ {n:'Obsidian',cost:1599,m:4,cap:1000,c:['#9ca3af','#374151','#030712'],e:'bolt'},
+ {n:'Royal',cost:1999,m:5,cap:1200,c:['#fde68a','#d946ef','#4c1d95'],e:'crown'}
+];
+const EM={crown:'<path d="M28 66 24 38l15 12 11-19 11 19 15-12-4 28z"/><rect x="28" y="68" width="44" height="6" rx="2"/>',gem:'<path d="M32 40h36l9 12-27 28-27-28z"/><path d="M23 52h54M42 40l8 40 8-40" fill="none"/>',star:'<path d="M50 24l8 18 19 2-14 13 4 19-17-10-17 10 4-19-14-13 19-2z"/>',bolt:'<path d="M56 22 34 54h14l-5 24 24-34H53z"/>'};
+let _u=0;
+const cs=(k,sz)=>{const c=SK[k].c,id='g'+(++_u);return `<svg width="${sz}" height="${sz}" viewBox="0 0 100 100" aria-hidden="true"><defs><radialGradient id="${id}" cx="35%" cy="30%" r="80%"><stop offset="0" stop-color="${c[0]}"/><stop offset=".55" stop-color="${c[1]}"/><stop offset="1" stop-color="${c[2]}"/></radialGradient></defs><circle cx="50" cy="50" r="47" fill="url(#${id})"/><circle cx="50" cy="50" r="46" fill="none" stroke="${c[2]}" stroke-opacity=".55" stroke-width="2"/><circle cx="50" cy="50" r="38" fill="none" stroke="#fff" stroke-opacity=".6" stroke-width="2.5" stroke-dasharray="2 5" stroke-linecap="round"/><circle cx="50" cy="50" r="32" fill="${c[2]}" fill-opacity=".28"/><g fill="#fff" fill-opacity=".93" stroke="${c[2]}" stroke-width="1.5" stroke-linejoin="round">${EM[SK[k].e]}</g><ellipse cx="34" cy="25" rx="15" ry="7" fill="#fff" fill-opacity=".38" transform="rotate(-30 34 25)"/></svg>`};
+const dia=(sz=16)=>`<svg class="c" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9z" fill="#38bdf8" stroke="#0ea5e9" stroke-width="1.2" stroke-linejoin="round"/><path d="M2 9h20M9 3l3 6 3-6M12 9v13" fill="none" stroke="#e0f2fe" stroke-width="1"/></svg>`;
+const BONUS=500,DAY=864e5,EXCH=10,REFILL=20,AD_COST=2;
+let pend=0;
+const SV=[
+ {id:'ig',n:'Instagram',ic:'camera',c:['#f472b6','#c026d3'],items:[{id:'ig_views',n:"Ko'rishlar",q:1000,p:10},{id:'ig_subs',n:'Obunachi',q:50,p:20},{id:'ig_likes',n:'Like',q:50,p:10}]},
+ {id:'tg',n:'Telegram',ic:'send',c:['#38bdf8','#2563eb'],items:[{id:'tg_views',n:"Ko'rishlar",q:1000,p:5},{id:'tg_react',n:'Reaksiya',q:10,p:1},{id:'tg_subs',n:'Obunachi',q:50,p:10}]},
+ {id:'yt',n:'YouTube',ic:'play',c:['#f87171','#dc2626'],items:[{id:'yt_subs',n:'Obunachi',q:1000,p:100},{id:'yt_likes',n:'Like',q:10,p:1},{id:'yt_views',n:"Ko'rishlar",q:1000,p:10}]},
+ {id:'pubg',n:'PUBG Mobile',ic:'gamepad',c:['#fbbf24','#d97706'],target:'PUBG Player ID',items:[{id:'pubg_uc',n:'UC',q:60,p:500,unit:' UC'}]},
+ {id:'tt',n:'TikTok',ic:'music',c:['#94a3b8','#475569'],off:true,items:[]}
+];
+const SVI={};SV.forEach(p=>p.items.forEach(i=>{SVI[i.id]={...i,pn:p.n}}));
+const star=(sz=16)=>`<svg class="c" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z" fill="#facc15" stroke="#d97706" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 const $=id=>document.getElementById(id);
 const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e4?(n/1e3).toFixed(1)+'K':Math.floor(n).toLocaleString();
-const titleOf=l=>{const t=l.reduce((a,b)=>a+b,0);return t<5?'🌱 Yangi boshlovchi':t<15?'⛏️ Konchi':t<40?'🏭 Magnat':'👑 Imperator'};
 
 const tg=window.Telegram&&window.Telegram.WebApp, online=!!(tg&&tg.initData);
 if(tg){tg.ready();tg.expand();}
@@ -121,24 +482,49 @@ async function api(action,i,x){
   }
   let r=null;try{r=JSON.parse(localStorage.getItem('cmpro'))}catch(e){}
   const now=Date.now();
-  r=r||{coins:100,levels:[0,0,0,0],bonusAt:0,streak:0,updated:now};r.tasks=r.tasks||[];
-  const offline=Math.min((now-r.updated)/1000,CAP)*income(r.levels);
-  r.coins+=offline;r.updated=now;
-  if(action==='buy'){const c=cost(i,r.levels[i]);if(r.coins>=c){r.coins-=c;r.levels[i]++;}}
-  if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
-  if(action==='task'){const T=TASKS.find(x=>x.id===i);const lv=r.levels.reduce((a,b)=>a+b,0);
-    if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&lv>=10))){r.coins+=T.r;r.tasks.push(T.id);}}
-  r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:150,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:100,owner:1}];
-  r.claims=r.claims||[];let err=null;
-  if(action==='ad_add'){const need=Math.floor(+x.need),price=Math.floor(+x.price),ch=String(x.channel||'').trim().replace(/^@?/,'@');
-    if(!/^@[A-Za-z][A-Za-z0-9_]{4,31}$/.test(ch)||!(need>=5&&need<=10000)||!(price>=10&&price<=5000))err='limits';
-    else if(r.coins<need*price)err='funds';
-    else{r.coins-=need*price;r.ads.push({id:Date.now(),channel:ch,need,done:0,price,owner:0});}}
+  r=r||{coins:100,bonusAt:0,streak:0};r.tasks=r.tasks||[];
+  r.diamonds=r.diamonds??500;r.skins=r.skins||[0];r.skin=r.skin??0;r.taps=r.taps||0;
+  const offline=0;let err=null;r.updated=now;
+  const day=Math.floor(now/DAY);if(r.tapday!==day){r.taps=0;r.tapday=day;}
+  r.orders=r.orders||[];
+  if(action==='order'){const it=SVI[x.svc],cnt=Math.floor(+x.count),tgt=String(x.target||'').trim();
+    if(!it)err='gone';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
+    else{r.diamonds-=it.p*cnt;r.orders.unshift({id:Date.now(),svc:x.svc,count:cnt,total:it.p*cnt,status:'new'});}}
+  if(action==='buy_stars')err='demo_pay';
+  if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
+  if(action==='buy'){if(!(i>=1&&i<SK.length)||r.skins.includes(i))err='gone';else if(!r.skins.includes(i-1))err='locked';else if(r.diamonds<SK[i].cost)err='diamonds';else{r.diamonds-=SK[i].cost;r.skins.push(i);r.skin=i;}}
+  if(action==='select'){if(r.skins.includes(i))r.skin=i;else err='locked';}
+  if(action==='exchange'){const n=Math.floor(+x.n);if(!(n>=1&&n<=100000))err='bad_amount';else if(r.coins<n*EXCH)err='funds';else{r.coins-=n*EXCH;r.diamonds+=n;}}
+  if(action==='refill'){if(r.diamonds<REFILL)err='diamonds';else{r.diamonds-=REFILL;r.taps=0;}}
+ 
+if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
+  if(action==='task'){const T=TASKS.find(x=>x.id===i);
+    if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&r.skins.length>=3))){r.coins+=T.r;r.tasks.push(T.id);}}
+  r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:1,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:1,owner:1}];
+  r.claims=r.claims||[];
+  if(action==='ad_add'){const need=Math.floor(+x.need),ch=String(x.channel||'').trim().replace(/^@?/,'@');
+    if(!/^@[A-Za-z][A-Za-z0-9_]{4,31}$/.test(ch)||!(need>=5&&need<=10000))err='limits';
+    else if(r.diamonds<need*AD_COST)err='diamonds';
+    else{r.diamonds-=need*AD_COST;r.ads.push({id:Date.now(),channel:ch,need,done:0,price:1,owner:0});}}
   if(action==='ad_check'){const a=r.ads.find(z=>z.id===i);
     if(!a||a.done>=a.need||a.owner===0)err='gone';else if(r.claims.includes(a.id))err='claimed';
-    else{r.coins+=a.price;a.done++;r.claims.push(a.id);}}
+    else{r.diamonds+=a.price;a.done++;r.claims.push(a.id);}}
+  r.code=r.code||Array.from({length:5},()=>'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random()*32)]).join('');
+  r.promos=r.promos||[{code:'DEMO100',reward:100,max:50,used:0}];r.pused=r.pused||[];
+  if(action==='code_set'){const c=String(x.code||'').toUpperCase();if(r.codeLocked)err='code_locked';else if(!/^[A-Z0-9]{5}$/.test(c))err='code_bad';else if(c===r.code)err='code_same';else{r.code=c;r.codeLocked=true;}}
+  if(action==='send'){const c=String(x.to||'').trim().toUpperCase(),a=Math.floor(+x.amount);
+    if(!/^[A-Z0-9]{5}$/.test(c))err='send_none';else if(c===r.code)err='send_self';else if(!(a>=10))err='send_min';else if(r.coins<a)err='funds';else r.coins-=a;}
+  if(action==='promo'){const c=String(x.code||'').trim().toUpperCase(),pr=r.promos.find(z=>z.code===c);
+    if(!pr)err='promo_none';else if(r.pused.includes(c))err='promo_used';else if(pr.used>=pr.max)err='promo_end';else{r.coins+=pr.reward;pr.used++;r.pused.push(c);}}
+  if(/^admin_/.test(action)){err='forbidden';action='noop';}
+  if(action==='admin_promo'){const c=String(x.code||'').trim().toUpperCase(),rw=Math.floor(+x.reward),mx=Math.floor(+x.max);
+    if(!/^[A-Z0-9]{3,20}$/.test(c)||!(rw>=1)||!(mx>=1))err='limits';else if(r.promos.find(z=>z.code===c))err='promo_exists';else r.promos.unshift({code:c,reward:rw,max:mx,used:0});}
+  if(action==='admin_give'){const a=Math.floor(+x.amount);if(a>=1)r.coins+=a;else err='bad_amount';}
+  if(action==='admin_take'){const a=Math.floor(+x.amount),c=String(x.code||'').trim().toUpperCase();
+    if(!(a>=1))err='bad_amount';else if(c&&!/^[A-Z0-9]{5}$/.test(c))err='send_none';else if(!c||c===r.code)r.coins=Math.max(0,r.coins-a);}
+  if(action==='admin_reset'&&x&&x.confirm)r.coins=0;
   try{localStorage.setItem('cmpro',JSON.stringify(r))}catch(e){}
-  const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0)};
+  const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0),admin:false};
   if(action==='load')out.offline=offline;
   if(action==='top'){
     const all=[...BOTS,['Siz',r.coins]].sort((a,b)=>b[1]-a[1]);
@@ -148,54 +534,134 @@ async function api(action,i,x){
 }
 
 let s=null;
-const set=d=>{s={coins:d.coins,levels:d.levels,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],t:Date.now()}};
-const live=()=>s.coins+income(s.levels)*(Date.now()-s.t)/1000;
+const set=d=>{const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,t:Date.now()}};
+const live=()=>s.coins;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800)}
 
-UPG.forEach((u,i)=>{
-  const d=document.createElement('div');d.className='card';
-  d.innerHTML=`<div class="ico">${u.e}</div><div class="info"><div class="nm"></div><div class="sub"></div></div><button class="buy"></button>`;
-  d.querySelector('.buy').onclick=()=>act('buy',i);
-  $('list').appendChild(d);
+const energy=()=>Math.max(0,SK[s.skin].cap-s.taps-pend*SK[s.skin].m);
+const tc0=$('tapcoin');
+function fx(e,m){
+  const r=tc0.getBoundingClientRect(),dx=((e.clientX-r.left)/r.width-.5)*2,dy=((e.clientY-r.top)/r.height-.5)*2;
+  tc0.style.transform=`perspective(500px) rotateX(${(-dy*14).toFixed(1)}deg) rotateY(${(dx*14).toFixed(1)}deg) scale(.95)`;
+  const f=document.createElement('div');f.className='float';f.textContent='+'+m;
+  f.style.left=(e.clientX-14)+'px';f.style.top=(e.clientY-34)+'px';f.style.setProperty('--dx',(Math.random()*70-35)+'px');
+  const rp=document.createElement('div');rp.className='ripple';rp.style.left=e.clientX+'px';rp.style.top=e.clientY+'px';
+  document.body.appendChild(f);document.body.appendChild(rp);
+  for(let k=0;k<6;k++){
+    const p=document.createElement('i'),a=Math.random()*6.283,d=40+Math.random()*40;
+    p.className='spark';p.style.left=e.clientX+'px';p.style.top=e.clientY+'px';
+    p.style.setProperty('--sx',Math.cos(a)*d+'px');p.style.setProperty('--sy',Math.sin(a)*d+'px');
+    document.body.appendChild(p);setTimeout(()=>p.remove(),600);
+  }
+  setTimeout(()=>{f.remove();rp.remove()},800);
+}
+['pointerup','pointerleave','pointercancel'].forEach(ev=>tc0.addEventListener(ev,()=>{tc0.style.transform=''}));
+tc0.addEventListener('pointerdown',e=>{
+  if(!s)return;
+  const m=SK[s.skin].m;
+  if(energy()<m){toast("Energiya tugadi. Boost bilan to'ldiring yoki ertaga qaytib keling");return;}
+  pend++;s.coins+=m;
+  if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
+  fx(e,m);render();
 });
+let tapBusy=false;
+async function flush(){
+  if(!s||!pend||tapBusy)return;
+  tapBusy=true;const n=pend;pend=0;
+  try{set(await api('tap',null,{n}));}catch(e){pend+=n;toast(e.message||'Xato');}
+  tapBusy=false;render();
+}
+setInterval(flush,1000);
 
 function render(){
   if(!s)return;
-  const c=live(),r=income(s.levels);
-  $('coins').textContent=fmt(c);
-  $('rate').textContent='+'+(r%1?r.toFixed(1):r)+' coin / sekund';
-  $('rank').textContent=titleOf(s.levels);
-  const tl=s.levels.reduce((a,b)=>a+b,0),lo=tl<5?0:tl<15?5:tl<40?15:40,hi=tl<5?5:tl<15?15:tl<40?40:tl;
-  $('pb').style.width=(hi===lo?100:(tl-lo)/(hi-lo)*100)+'%';
-  [...$('list').children].forEach((d,i)=>{
-    const cc=cost(i,s.levels[i]);
-    d.querySelector('.nm').textContent=`${UPG[i].n} · ${s.levels[i]}-daraja`;
-    d.querySelector('.sub').textContent=`+${UPG[i].inc} / sek har bir daraja uchun`;
-    const b=d.querySelector('.buy');b.textContent='🪙 '+fmt(cc);b.disabled=c<cc;
-  });
+  const k=SK[s.skin],en=energy();
+  $('coins').innerHTML=coin(44)+'<span>'+fmt(s.coins)+'</span>';
+  $('gcn').textContent=fmt(s.coins);$('gdn').textContent=fmt(s.diamonds);
+  $('gd').innerHTML=dia(22);$('gc').innerHTML=coin(20);
+  $('tapx').textContent='Tap x '+k.m;
+  $('etext').textContent=en+'/'+k.cap;$('efill').style.width=(en/k.cap*100)+'%';
+  const tc=$('tapcoin');if(tc.dataset.k!==String(s.skin)){tc.dataset.k=s.skin;tc.innerHTML=cs(s.skin,250);}
   const left=DAY-(Date.now()-s.bonusAt),bb=$('bonus');
   bb.disabled=left>0;
   const next=BONUS*Math.min((Date.now()-s.bonusAt<2*DAY?s.streak:0)+1,7);
-  bb.textContent=left>0?`🎁 Keyingi bonus: ${Math.floor(left/36e5)}s ${Math.floor(left%36e5/6e4)}d`:`🎁 Bonus +${next} (seriya: ${s.streak})`;
+  bb.innerHTML=ic('gift',18)+' '+(left>0?`Keyingi bonus: ${Math.floor(left/36e5)}s ${Math.floor(left%36e5/6e4)}d`:`Kunlik bonus +${next} (seriya: ${s.streak})`);
 }
+
+let modalMode='';
+const head=(t,p)=>`<div class="mh"><div><h2>${t}</h2><p>${p}</p></div><button class="mx" data-a="close">×</button></div>`;
+function drawModal(){
+  if(!s||!modalMode||modalMode==='panel')return;
+  let h='';
+  if(modalMode==='shop'){
+    h=head("TANGA DO'KONI",'Olmos bilan xarid qiling. Tangalar ketma-ket ochiladi')+'<div class="sgrid">'+SK.map((k,i)=>{
+      const own=s.skins.includes(i),sel=s.skin===i,open=own||s.skins.includes(i-1);
+      const btn=sel?'<button class="sb sel" disabled>TANLANGAN</button>':own?`<button class="sb own" data-a="select" data-k="${i}">TANLASH</button>`:open?`<button class="sb buyb" data-a="buy" data-k="${i}">SOTIB OLISH</button>`:'<button class="sb lock" disabled>YOPIQ</button>';
+      return `<div class="sk"><div class="skc">${cs(i,92)}<span class="price">${k.cost}${dia(13)}</span></div><div class="skn">${k.n.toUpperCase()}</div><div class="sks">x${k.m} click · ${k.cap} cap/day</div>${btn}</div>`;
+    }).join('')+'</div>';
+  }else if(modalMode==='dia'){
+    h=head('OLMOS SOTIB OLISH',`1 olmos = ${EXCH} coin · sizda ${fmt(s.coins)} coin`)+`<div class="mrow"><input id="exn" type="number" inputmode="numeric" placeholder="Nechta olmos" style="background:#0f0c06;color:#fff;border-color:#6b4e12"><button class="sb buyb" style="width:auto;padding:0 18px" data-a="exch">Olish</button></div>`;
+  }else{
+    h=modalMode==='order'?orderHTML():modalMode==='plat'?platHTML():head('ENERGIYA',"Energiyani to'ldiring")+`<div class="sk"><div class="skn">Energiya to'ldirish</div><div class="sks">Kunlik limitni qayta tiklaydi</div><button class="sb buyb" data-a="refill">${REFILL} olmos</button></div>`;
+  }
+  $('mbody').innerHTML=h;if(modalMode==='order')ordSum();
+}
+function openModal(m){restorePanel();modalMode=m;$('modal').hidden=false;drawModal();}
+function restorePanel(){if(movedEl){movedEl.hidden=true;$('v-pf').appendChild(movedEl);movedEl=null;}}
+function closeModal(){restorePanel();modalMode='';$('modal').hidden=true;}
+$('shopbtn').onclick=()=>openModal('shop');
+$('boostbtn').onclick=()=>openModal('boost');
+$('diaplus').onclick=()=>openModal('dia');
+$('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
+$('mbody').onclick=e=>{
+  const t=e.target.closest('[data-a]');if(!t)return;
+  const a=t.dataset.a,k=+t.dataset.k;
+  if(a==='close')closeModal();
+  else if(a==='buy')act('buy',k);
+  else if(a==='select')act('select',k);
+  else if(a==='exch')act('exchange',null,{n:$('exn').value});
+  else if(a==='refill')act('refill');
+  else if(a==='order')act('order',null,{svc:ordSel.it.id,count:$('ordc').value,target:$('ordt').value});
+  else if(a==='svc'){ordSel={p:openPlat,it:openPlat.items[k]};modalMode='order';drawModal();}
+  else if(a==='back'){modalMode='plat';drawModal();}
+};
 
 async function act(action,i,x){
   try{
     const d=await api(action,i,x);set(d);
     if(d.err)toast(errMsg(d.err));
-    else if(action==='ad_add'){closeForm();toast("✅ Vazifa qo'shildi");}
-    else if(action==='ad_check')toast('✅ Mukofot olindi');
+    else if(action==='ad_add'){closeForm();toast("Vazifa qo'shildi");}
+    else if(action==='ad_check')toast('Mukofot: +1 olmos');
+    else if(action==='order'){toast('Buyurtma qabul qilindi');closeModal();}
+    else if(action==='buy')toast('Tanga sotib olindi va tanlandi');
+    else if(action==='select')toast('Tanga tanlandi');
+    else if(action==='exchange')toast('Olmos sotib olindi');
+    else if(action==='refill')toast("Energiya to'ldirildi");
+    else if(action==='code_set')toast('Kod saqlandi');
+    else if(action==='send'){toast('Coin yuborildi');$('sendamt').value='';}
+    else if(action==='promo'){toast('Promokod faollashtirildi');$('promoin').value='';}
+    else if(action==='admin_promo'){toast("Promokod qo'shildi");['apcode','aprew','apmax'].forEach(id=>$(id).value='');}
+    else if(action==='admin_give'){toast('Coin berildi');$('agive').value='';}
+    else if(action==='admin_take'){toast("Coin olib qo'yildi");['atcode','atamt'].forEach(id=>$(id).value='');}
+    else if(action==='admin_reset')toast("Hammaning coini 0 qilindi");
     if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
-    if(action==='load'&&d.offline>=1)toast('⏳ Yo\'qligingizda +'+fmt(d.offline)+' coin yig\'ildi');
+    if(action==='load'&&d.offline>=1)toast('Yo\'qligingizda +'+fmt(d.offline)+' coin yig\'ildi');
     if(action==='top')showTop(d);
-    if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'✅ +'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
+    if(action==='buy_stars'&&d.invoice&&!d.err&&tg&&tg.openInvoice)tg.openInvoice(d.invoice,st=>{
+      if(st==='paid'){toast("To'lov qabul qilindi, balans yangilanmoqda");setTimeout(()=>act('profile'),1500);setTimeout(()=>act('profile'),5000);}
+      else if(st==='failed')toast("To'lov amalga oshmadi");
+    });
+    if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'+'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
   }catch(e){toast(e.message||'Xato')}
   if(!$('v-tk').hidden)renderTasks();
+  if(!$('v-pf').hidden)renderProfile();
+  if(!$('v-bs').hidden)renderBoost();
+  if(modalMode)drawModal();
   render();
 }
 
 function showTop(d){
-  $('toplist').innerHTML=d.top.map((u,i)=>`<div class="row ${u.name==='Siz'?'me':''}"><span>${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${u.name.replace(/</g,'&lt;')}</span><b>🪙 ${fmt(u.coins)}</b></div>`).join('');
+  $('toplist').innerHTML=d.top.map((u,i)=>`<div class="row ${u.name==='Siz'?'me':''}"><span><span class="medal${i<3?' m'+(i+1):''}">${i+1}</span> ${u.name.replace(/</g,'&lt;')}</span><b>${coin(15)}${fmt(u.coins)}</b></div>`).join('');
   $('myrank').textContent='Sizning o\'rningiz: #'+d.rank;
 }
 
@@ -206,87 +672,177 @@ function showFriends(){
   $('link').textContent=link();
 }
 $('share').onclick=async()=>{
-  const url=link(),text='Coin Mine o\'yiniga qo\'shiling va bonus oling! ⛏️';
+  const url=link(),text='Coin Mine o\'yiniga qo\'shiling va bonus oling!';
   if(online&&tg.openTelegramLink)tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text));
   else{try{await navigator.clipboard.writeText(url);toast('Havola nusxalandi')}catch(e){toast('Havolani qo\'lda nusxalang')}}
 };
 
 document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
   document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
-  ['mine','top','fr','tk'].forEach(t=>$('v-'+t).hidden=t!==b.dataset.t);
+  ['mine','bs','tk','pf'].forEach(t=>$('v-'+t).hidden=t!==b.dataset.t);
   if(b.dataset.t==='tk'){renderTasks();act('tasks');}
+  if(b.dataset.t==='pf'){renderProfile();act('profile');}
+  if(b.dataset.t==='bs'){renderBoost();act('boost');}
   if(b.dataset.t==='top')act('top');
   if(b.dataset.t==='fr')showFriends();
 });
 $('bonus').onclick=()=>act('bonus');
 
 const TASKS=[
-  {id:'channel',e:'📢',n:"Kanalga obuna bo'ling",r:2000},
-  {id:'friends3',e:'👥',n:"3 ta do'st taklif qiling",r:3000},
-  {id:'level10',e:'🏗️',n:'Jami 10 daraja oshiring',r:1500}
+  {id:'channel',e:'send',n:"Kanalga obuna bo'ling",r:2000},
+  {id:'friends3',e:'users',n:"3 ta do'st taklif qiling",r:3000},
+  {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
 ];
-const opened={};
-const errMsg=c=>({limits:"Chegara: 5–10 000 obunachi, 10–5 000 coin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Paket soni 1 dan 100 gacha bo'lsin",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+function taskBtns(d,done,goFn,checkFn){
+  const w=document.createElement('div');w.className='acts';
+  if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
+  else{
+    if(goFn){const g=document.createElement('button');g.className='buy go';g.textContent="O'tish";g.onclick=goFn;w.appendChild(g);}
+    const c=document.createElement('button');c.className='buy ck';c.textContent='Tekshirish';c.onclick=checkFn;w.appendChild(c);
+  }
+  d.appendChild(w);
+}
 function renderAds(){
   $('adlist').innerHTML='';$('myads').innerHTML='';
   s.ads.forEach(a=>{
     const d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">📣</div><div class="info"><div class="nm"></div><div class="sub">Mukofot: +${fmt(a.price)} 🪙 · qoldi: ${a.need-a.done}</div></div><button class="buy"></button>`;
+    d.innerHTML=`<div class="ico" style="background:linear-gradient(135deg,#fb7185,#e11d48)">${ic('megaphone',24)}</div><div class="info"><div class="nm"></div><div class="sub">Mukofot: +${a.price} ${dia(14)} · qoldi: ${a.need-a.done}</div></div>`;
     d.querySelector('.nm').textContent=a.channel;
-    const k='ad'+a.id,b=d.querySelector('button');
-    const needGo=!opened[k];
-    b.textContent=needGo?'Bajarish':'Tekshirish';
-    b.onclick=()=>{if(needGo){openCh(k,a.channel);return;}act('ad_check',a.id);};
+    taskBtns(d,false,()=>openCh(a.channel),()=>act('ad_check',a.id));
     $('adlist').appendChild(d);
   });
   $('myh').hidden=!s.myAds.length;
   s.myAds.forEach(a=>{
     const d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">📊</div><div class="info"><div class="nm"></div><div class="sub">${a.done} / ${a.need} obunachi · har biri ${fmt(a.price)} 🪙</div></div>`;
+    d.innerHTML=`<div class="ico" style="background:linear-gradient(135deg,#64748b,#334155)">${ic('chart',24)}</div><div class="info"><div class="nm"></div><div class="sub">${a.done} / ${a.need} obunachi · to'langan ${a.need*AD_COST} ${dia(14)}</div></div>`;
     d.querySelector('.nm').textContent=a.channel;$('myads').appendChild(d);
   });
 }
-function openCh(k,ch){
-  opened[k]=1;
-  if(ch){const u='https://t.me/'+ch.replace('@','');
-    if(online&&tg.openTelegramLink)tg.openTelegramLink(u);else{try{window.open(u,'_blank')}catch(e){}}}
-  renderTasks();
+function openCh(ch){
+  if(!ch){toast("Demo rejimda kanal ochilmaydi. Telegramdagi botda ochiladi");return;}
+  const u='https://t.me/'+ch.replace('@','');
+  if(online&&tg.openTelegramLink)tg.openTelegramLink(u);else{try{window.open(u,'_blank')}catch(e){}}
 }
-const adv=()=>{const need=Math.floor(+$('adneed').value),price=Math.floor(+$('adprice').value);return{need,price,total:need*price,ch:$('adch').value.trim()}};
+const adv=()=>{const need=Math.floor(+$('adneed').value);return{need,total:need*AD_COST,ch:$('adch').value.trim()}};
 function adCheck(){
   const v=adv();
   if(!/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(v.ch))return{v,msg:"Kanal username'ini kiriting (masalan @kanal)"};
   if(!(v.need>=5&&v.need<=10000))return{v,msg:"Obunachi soni 5 dan 10 000 gacha bo'lsin"};
-  if(!(v.price>=10&&v.price<=5000))return{v,msg:"Narx 10 dan 5 000 coin gacha bo'lsin"};
-  if(live()<v.total)return{v,msg:'Coin yetarli emas: kerak '+fmt(v.total)+', sizda '+fmt(live())};
+  if(s.diamonds<v.total)return{v,msg:'Olmos yetarli emas: kerak '+v.total+', sizda '+s.diamonds};
   return{v};
 }
 function adUpdate(){
   const c=adCheck();
-  $('adsum').textContent=c.msg||`Jami: ${fmt(c.v.total)} 🪙 (sizda: ${fmt(live())})`;
-  $('adpay').textContent=c.v.total>0?"💳 To'lash va qo'shish · "+fmt(c.v.total)+' 🪙':"➕ Qo'shish";
+  $('adsum').textContent=c.msg||`Jami: ${c.v.total} olmos (sizda: ${s.diamonds})`;
+  $('adpay').innerHTML=c.v.total>0?ic('card',18)+" To'lash va qo'shish · "+c.v.total+' olmos':ic('plus',18)+" Qo'shish";
 }
-['adch','adneed','adprice'].forEach(id=>$(id).oninput=adUpdate);
+['adch','adneed'].forEach(id=>$(id).oninput=adUpdate);
 $('plus').onclick=()=>{$('adform').hidden=!$('adform').hidden;adUpdate();};
-$('adpay').onclick=()=>{const c=adCheck();if(c.msg){toast(c.msg);adUpdate();return;}act('ad_add',null,{channel:c.v.ch,need:c.v.need,price:c.v.price});};
-function closeForm(){$('adform').hidden=true;['adch','adneed','adprice'].forEach(id=>$(id).value='');}
+$('adpay').onclick=()=>{const c=adCheck();if(c.msg){toast(c.msg);adUpdate();return;}act('ad_add',null,{channel:c.v.ch,need:c.v.need});};
+function closeForm(){$('adform').hidden=true;['adch','adneed'].forEach(id=>$(id).value='');}
 function renderTasks(){
   if(!s)return;
   $('tasks').innerHTML='';renderAds();
   TASKS.forEach(T=>{
     const done=s.tasks.includes(T.id),d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">${T.e}</div><div class="info"><div class="nm">${T.n}</div><div class="sub">Mukofot: +${fmt(T.r)} 🪙</div></div><button class="buy"></button>`;
-    const b=d.querySelector('button');
-    b.disabled=done;
-    const needGo=T.id==='channel'&&!opened[T.id];
-    b.textContent=done?'✔':needGo?'Bajarish':'Tekshirish';
-    b.onclick=()=>{
-      if(needGo){openCh(T.id,s.channel);return;}
-      act('task',T.id);
-    };
+    d.innerHTML=`<div class="ico">${ic(T.e,24)}</div><div class="info"><div class="nm">${T.n}</div><div class="sub">Mukofot: +${fmt(T.r)} ${coin(14)}</div></div>`;
+    taskBtns(d,done,T.id==='channel'?()=>openCh(s.channel):null,()=>act('task',T.id));
     $('tasks').appendChild(d);
   });
 }
+function renderProfile(){
+  if(!s)return;
+  if(s.codeLocked||document.activeElement!==$('mycode'))$('mycode').value=s.code;
+  $('mycode').readOnly=!!s.codeLocked;$('codesave').disabled=!!s.codeLocked;
+  $('codehint').textContent=s.codeLocked?"Kodingiz o'zgartirilgan, endi qayta o'zgartirib bo'lmaydi.":"Sizga tasodifiy kod berilgan. Uni faqat 1 marta o'zgartirish mumkin.";
+  if(!s.admin){['p-admin','menu-admin'].forEach(id=>{const el=$(id);if(el)el.remove();});}   // admin bo'lmaganlar uchun sahifadan butunlay olib tashlanadi
+  else $('menu-admin').hidden=false;
+  $('aplist').innerHTML=s.promos.length?s.promos.map(p=>`<div class="row"><b>${p.code.replace(/</g,'&lt;')}</b><span>${fmt(p.reward)} coin · ${p.used}/${p.max}</span></div>`).join(''):'<div class="sub">Hali promokod qo\'shilmagan</div>';
+}
+const PT={admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
+function openPanel(key){
+  const el=$('p-'+key);if(!el)return;
+  openModal('panel');                    // oldingi oynani yopib, panelni alohida oynaga ko'chiradi
+  $('mbody').innerHTML=head(PT[key],'');
+  movedEl=el;$('mbody').appendChild(el);el.hidden=false;
+}
+document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
+  const k=b.dataset.p;
+  if(k==='admin'&&!(s&&s.admin))return;
+  openPanel(k);
+  if(k==='top')act('top');
+  if(k==='fr')showFriends();
+  if(k==='buy')starUpdate();
+});
+$('codesave').onclick=()=>{
+  const c=$('mycode').value.trim().toUpperCase();
+  if(!/^[A-Z0-9]{5}$/.test(c)){toast(errMsg('code_bad'));return;}
+  if(c===s.code){toast(errMsg('code_same'));return;}
+  const go=()=>act('code_set',null,{code:c}),msg=`Kodni ${c} ga o'zgartirasizmi? Keyin qayta o'zgartirib bo'lmaydi.`;
+ 
+if(tg&&tg.showConfirm)tg.showConfirm(msg,ok=>{if(ok)go();});else if(confirm(msg))go();
+};
+$('sendbtn').onclick=()=>act('send',null,{to:$('sendto').value,amount:$('sendamt').value});
+$('promobtn').onclick=()=>act('promo',null,{code:$('promoin').value});
+$('apadd').onclick=()=>act('admin_promo',null,{code:$('apcode').value,reward:$('aprew').value,max:$('apmax').value});
+$('agivebtn').onclick=()=>act('admin_give',null,{amount:$('agive').value});
+$('atbtn').onclick=()=>act('admin_take',null,{code:$('atcode').value,amount:$('atamt').value});
+let rst=0;
+$('resetbtn').onclick=()=>{
+  if(!rst){rst=setTimeout(()=>{rst=0;$('resetbtn').textContent='Hammaning coinini 0 qilish'},4000);$('resetbtn').textContent='Aniq 0 qilasizmi? Yana bosing';return;}
+  clearTimeout(rst);rst=0;$('resetbtn').textContent='Hammaning coinini 0 qilish';
+  act('admin_reset',null,{confirm:true});
+};
+
+let openP='',ordSel=null,openPlat=null,movedEl=null;
+const STATUS={new:'Kutilmoqda',done:'Bajarildi',rejected:"Rad etildi, olmos qaytarildi"};
+function renderBoost(){
+  if(!s)return;
+  $('svlist').innerHTML='';
+  SV.forEach(p=>{
+    const d=document.createElement('div');d.className='card col';
+    if(p.off)d.style.opacity='.55';
+    d.innerHTML=`<div class="phead"><div class="ico" style="background:linear-gradient(135deg,${p.c[0]},${p.c[1]})">${ic(p.ic,24)}</div><div class="info"><div class="nm">${p.n}</div><div class="sub">${p.off?'Xizmat mavjud emas':p.items.length+' ta xizmat'}</div></div>${p.off?'':'<b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>'}</div>`;
+    if(!p.off)d.querySelector('.phead').onclick=()=>{openPlat=p;openModal('plat');};
+    $('svlist').appendChild(d);
+  });
+  $('ordh').hidden=!s.orders.length;$('ordlist').innerHTML='';
+  s.orders.forEach(o=>{
+    const it=SVI[o.svc],d=document.createElement('div');d.className='card';
+    d.innerHTML=`<div class="ico">${ic('chart',22)}</div><div class="info"><div class="nm"></div><div class="sub">${o.total} ${dia(13)} · ${STATUS[o.status]||o.status}</div></div>`;
+    d.querySelector('.nm').textContent=(it?it.pn+' · '+it.n:o.svc)+' x'+o.count;
+    $('ordlist').appendChild(d);
+  });
+}
+function platHTML(){
+  const p=openPlat;
+  return head(p.n,'Xizmatni tanlang')+'<div class="sgrid" style="grid-template-columns:1fr">'+p.items.map((it,i)=>`<div class="sk" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left"><div><div class="skn" style="margin:0">${it.n}</div><div class="sks" style="margin:2px 0 0">${fmt(it.q)}${it.unit||' ta'}</div></div><button class="sb buyb" style="width:auto;padding:10px 14px" data-a="svc" data-k="${i}">${dia(14)} ${it.p}</button></div>`).join('')+'</div>';
+}
+function orderHTML(){
+  const {p,it}=ordSel,pt=(($('ordt')||{}).value||'').replace(/"/g,'&quot;'),pc=(($('ordc')||{}).value||'1');
+  return head(p.n+' · '+it.n,`${fmt(it.q)}${it.unit||' ta'} = ${it.p} olmos (sizda ${fmt(s.diamonds)})`)+
+   `<input id="ordt" placeholder="${p.target||'Havola yoki username'}" maxlength="200" value="${pt}"><div class="mrow" style="margin-top:8px"><input id="ordc" type="number" inputmode="numeric" min="1" value="${pc}" placeholder="Paket soni"><div class="skn" id="ordsum" style="align-self:center;white-space:nowrap;margin:0"></div></div><button class="sb buyb" style="margin-top:12px" data-a="order">Buyurtma berish</button><button class="sb own" style="margin-top:8px" data-a="back">Orqaga</button>`;
+}
+function ordSum(){const c=Math.floor(+(($('ordc')||{}).value))||0;if($('ordsum'))$('ordsum').textContent=ordSel?(c*ordSel.it.p)+' olmos':'';}
+$('mbody').oninput=e=>{if(e.target.id==='ordc')ordSum();};
+
+let buyKind='coin';
+function starUpdate(){
+  const n=Math.floor(+$('stars').value)||0,amt=buyKind==='coin'?n*1000:n*20,ok=n>=1&&n<=2500;
+  $('kcoin').className='sb '+(buyKind==='coin'?'sel':'own');$('kdia').className='sb '+(buyKind==='diamond'?'sel':'own');
+  $('starsum').textContent=ok?`${n} Stars = ${fmt(amt)} ${buyKind==='coin'?'coin':'olmos'}`:"1 dan 2500 gacha Stars kiriting";
+  $('starpay').innerHTML=star(18)+' '+(ok?n:'')+" Stars bilan to'lash";
+}
+$('kcoin').onclick=()=>{buyKind='coin';starUpdate();};
+$('kdia').onclick=()=>{buyKind='diamond';starUpdate();};
+$('stars').oninput=starUpdate;
+$('starpay').onclick=()=>{
+  const n=Math.floor(+$('stars').value);
+  if(!(n>=1&&n<=2500)){toast("1 dan 2500 gacha Stars kiriting");return;}
+  act('buy_stars',null,{kind:buyKind,stars:n});
+};
+starUpdate();
 
 act('load');
 setInterval(render,200);
