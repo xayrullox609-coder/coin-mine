@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Coin Mine</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--bg:#f3f4fa;--card:#fff;--fg:#171726;--muted:#6d6d82;--gold:#e89b00;--btn:#4361ee;--line:#e4e4f0;
+    box-sizing:border-box;padding-top:env(safe-area-inset-top,0px)}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0f0f1a;--card:#1b1b2c;--fg:#fff;--muted:#9a9ab2;--line:#2b2b40;--gold:#ffc53d}}
+  :root[data-theme="dark"]{--bg:#0f0f1a;--card:#1b1b2c;--fg:#fff;--muted:#9a9ab2;--line:#2b2b40;--gold:#ffc53d}
+  html,body{margin:0;min-height:100%}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,sans-serif;max-width:480px;margin:0 auto;padding:18px 14px 110px}
+  button{font:inherit;border:0;border-radius:12px;cursor:pointer;transition:transform .08s,opacity .2s}
+  button:active:not(:disabled){transform:scale(.96)}
+  button:disabled{opacity:.4;cursor:default}
+  .hero{text-align:center;padding:18px 12px;border-radius:22px;background:linear-gradient(135deg,#4361ee,#7a3cff);color:#fff;margin-bottom:14px}
+  .title{font-size:12px;opacity:.85;letter-spacing:.5px}
+  #coins{font-size:46px;font-weight:800;margin:2px 0;color:#ffe27a}
+  #rate{font-size:14px;opacity:.9}
+  #bonus{margin-top:12px;padding:10px 16px;background:#fff;color:#4361ee;font-weight:700}
+  .card{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:12px;margin-bottom:10px}
+  .ico{font-size:32px;width:46px;text-align:center}
+  .info{flex:1;min-width:0}.nm{font-weight:700}.sub{font-size:12px;color:var(--muted);margin-top:2px}
+  .buy{padding:10px 12px;background:var(--btn);color:#fff;font-weight:700;min-width:88px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:11px 4px;border-bottom:1px solid var(--line)}
+  .me{background:rgba(67,97,238,.12);border-radius:10px}
+  h3{margin:6px 4px 12px}
+  .link{word-break:break-all;font-size:12px;color:var(--muted);background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px;margin:10px 0}
+  .primary{width:100%;padding:13px;background:var(--btn);color:#fff;font-weight:700}
+  nav{position:fixed;left:0;right:0;bottom:0;display:flex;justify-content:center;gap:6px;padding:8px 12px calc(8px + env(safe-area-inset-bottom,0px));background:var(--card);border-top:1px solid var(--line)}
+  nav button{flex:1;max-width:150px;padding:9px 4px;background:none;color:var(--muted);font-size:12px}
+  nav button.on{background:rgba(67,97,238,.14);color:var(--btn);font-weight:700}
+  nav span{display:block;font-size:20px}
+  #toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-90px);background:#181826;color:#fff;padding:10px 16px;border-radius:12px;font-size:13px;transition:transform .3s;z-index:9;max-width:90%;text-align:center}
+  #toast.show{transform:translate(-50%,0)}
+  .note{font-size:12px;color:var(--muted);text-align:center;margin:8px 0}
+  .bar{height:6px;border-radius:3px;background:rgba(255,255,255,.25);margin:10px auto 0;max-width:240px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:#ffe27a;transition:width .4s}
+  .plus{width:36px;height:36px;border-radius:50%;background:var(--btn);color:#fff;font-size:22px;line-height:1;padding:0}
+  input{width:100%;padding:11px;margin:6px 0;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--fg);font:inherit}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div id="toast"></div>
+
+<section id="v-mine">
+  <div class="hero">
+    <div class="title" id="rank"></div>
+    <div id="coins">0</div>
+    <div id="rate"></div>
+    <div class="bar"><i id="pb"></i></div>
+    <button id="bonus"></button>
+  </div>
+  <div id="list"></div>
+  <div class="note" id="mode"></div>
+</section>
+
+<section id="v-top" hidden>
+  <h3>🏆 Eng yaxshi 10 talik</h3>
+  <div id="toplist"></div>
+  <div class="note" id="myrank"></div>
+</section>
+
+<section id="v-fr" hidden>
+  <h3>👥 Do'stlarni taklif qiling</h3>
+  <div class="card"><div class="ico">🎁</div><div class="info"><div class="nm">Har bir do'st uchun +1000 🪙</div><div class="sub">Do'stingiz ham +1000 oladi</div></div></div>
+  <div class="note" id="refs"></div>
+  <div class="link" id="link"></div>
+  <button class="primary" id="share">Do'stga yuborish</button>
+</section>
+
+<section id="v-tk" hidden>
+  <h3 style="display:flex;justify-content:space-between;align-items:center">✅ Vazifalar <button id="plus" class="plus">+</button></h3>
+  <div id="adform" class="card" hidden style="flex-direction:column;align-items:stretch">
+    <div class="nm">📣 Kanalingizni reklama qiling</div>
+    <input id="adch" placeholder="@kanal_username">
+    <input id="adneed" type="number" inputmode="numeric" placeholder="Nechta obunachi kerak (5–10000)">
+    <input id="adprice" type="number" inputmode="numeric" placeholder="Har bir obunachi uchun coin (10–5000)">
+    <div class="sub" id="adsum"></div>
+    <div class="sub" style="color:#e5484d;font-weight:600">⚠️ Muhim: avval botni kanalingizga admin qiling, aks holda vazifa qo'shilmaydi.</div>
+    <button class="primary" id="adpay" style="margin-top:10px"></button>
+  </div>
+  <div id="tasks"></div>
+  <div id="adlist"></div>
+  <h3 id="myh" hidden>📊 Mening vazifalarim</h3>
+  <div id="myads"></div>
+</section>
+
+<nav>
+  <button data-t="mine" class="on"><span>⛏️</span>Kon</button>
+  <button data-t="top"><span>🏆</span>Reyting</button>
+  <button data-t="fr"><span>👥</span>Do'stlar</button>
+  <button data-t="tk"><span>✅</span>Vazifalar</button>
+</nav>
+
+<script>
+const UPG=[{n:'Kichik kon',e:'⛏️',base:50,inc:0.5},{n:'Ekskavator',e:'🚜',base:400,inc:3},{n:'Zavod',e:'🏭',base:3000,inc:15},{n:'Robot armiya',e:'🤖',base:25000,inc:80}];
+const CAP=10800,BONUS=500,DAY=864e5;
+const income=l=>l.reduce((s,v,i)=>s+v*UPG[i].inc,0);
+const cost=(i,lv)=>Math.floor(UPG[i].base*1.6**lv);
+const $=id=>document.getElementById(id);
+const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e4?(n/1e3).toFixed(1)+'K':Math.floor(n).toLocaleString();
+const titleOf=l=>{const t=l.reduce((a,b)=>a+b,0);return t<5?'🌱 Yangi boshlovchi':t<15?'⛏️ Konchi':t<40?'🏭 Magnat':'👑 Imperator'};
+
+const tg=window.Telegram&&window.Telegram.WebApp, online=!!(tg&&tg.initData);
+if(tg){tg.ready();tg.expand();}
+$('mode').textContent=online?'':'Demo rejim: ma\'lumot faqat shu brauzerda saqlanadi';
+
+const BOTS=[['Aziz',48200],['Madina',31500],['Jasur',22100],['Dilnoza',15800],['Sardor',9400],['Malika',6100],['Bekzod',3300]];
+
+async function api(action,i,x){
+  if(online){
+    const r=await fetch('/api/act',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg.initData,action,i,id:i,...(x||{})})});
+    if(r.status===429)throw new Error('Juda tez, biroz kuting');
+    if(!r.ok)throw new Error('Aloqa xatosi');
+    return r.json();
+  }
+  let r=null;try{r=JSON.parse(localStorage.getItem('cmpro'))}catch(e){}
+  const now=Date.now();
+  r=r||{coins:100,levels:[0,0,0,0],bonusAt:0,streak:0,updated:now};r.tasks=r.tasks||[];
+  const offline=Math.min((now-r.updated)/1000,CAP)*income(r.levels);
+  r.coins+=offline;r.updated=now;
+  if(action==='buy'){const c=cost(i,r.levels[i]);if(r.coins>=c){r.coins-=c;r.levels[i]++;}}
+  if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
+  if(action==='task'){const T=TASKS.find(x=>x.id===i);const lv=r.levels.reduce((a,b)=>a+b,0);
+    if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&lv>=10))){r.coins+=T.r;r.tasks.push(T.id);}}
+  r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:150,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:100,owner:1}];
+  r.claims=r.claims||[];let err=null;
+  if(action==='ad_add'){const need=Math.floor(+x.need),price=Math.floor(+x.price),ch=String(x.channel||'').trim().replace(/^@?/,'@');
+    if(!/^@[A-Za-z][A-Za-z0-9_]{4,31}$/.test(ch)||!(need>=5&&need<=10000)||!(price>=10&&price<=5000))err='limits';
+    else if(r.coins<need*price)err='funds';
+    else{r.coins-=need*price;r.ads.push({id:Date.now(),channel:ch,need,done:0,price,owner:0});}}
+  if(action==='ad_check'){const a=r.ads.find(z=>z.id===i);
+    if(!a||a.done>=a.need||a.owner===0)err='gone';else if(r.claims.includes(a.id))err='claimed';
+    else{r.coins+=a.price;a.done++;r.claims.push(a.id);}}
+  try{localStorage.setItem('cmpro',JSON.stringify(r))}catch(e){}
+  const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0)};
+  if(action==='load')out.offline=offline;
+  if(action==='top'){
+    const all=[...BOTS,['Siz',r.coins]].sort((a,b)=>b[1]-a[1]);
+    out.top=all.slice(0,10).map(x=>({name:x[0],coins:x[1]}));out.rank=all.findIndex(x=>x[0]==='Siz')+1;
+  }
+  return out;
+}
+
+let s=null;
+const set=d=>{s={coins:d.coins,levels:d.levels,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],t:Date.now()}};
+const live=()=>s.coins+income(s.levels)*(Date.now()-s.t)/1000;
+function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800)}
+
+UPG.forEach((u,i)=>{
+  const d=document.createElement('div');d.className='card';
+  d.innerHTML=`<div class="ico">${u.e}</div><div class="info"><div class="nm"></div><div class="sub"></div></div><button class="buy"></button>`;
+  d.querySelector('.buy').onclick=()=>act('buy',i);
+  $('list').appendChild(d);
+});
+
+function render(){
+  if(!s)return;
+  const c=live(),r=income(s.levels);
+  $('coins').textContent=fmt(c);
+  $('rate').textContent='+'+(r%1?r.toFixed(1):r)+' coin / sekund';
+  $('rank').textContent=titleOf(s.levels);
+  const tl=s.levels.reduce((a,b)=>a+b,0),lo=tl<5?0:tl<15?5:tl<40?15:40,hi=tl<5?5:tl<15?15:tl<40?40:tl;
+  $('pb').style.width=(hi===lo?100:(tl-lo)/(hi-lo)*100)+'%';
+  [...$('list').children].forEach((d,i)=>{
+    const cc=cost(i,s.levels[i]);
+    d.querySelector('.nm').textContent=`${UPG[i].n} · ${s.levels[i]}-daraja`;
+    d.querySelector('.sub').textContent=`+${UPG[i].inc} / sek har bir daraja uchun`;
+    const b=d.querySelector('.buy');b.textContent='🪙 '+fmt(cc);b.disabled=c<cc;
+  });
+  const left=DAY-(Date.now()-s.bonusAt),bb=$('bonus');
+  bb.disabled=left>0;
+  const next=BONUS*Math.min((Date.now()-s.bonusAt<2*DAY?s.streak:0)+1,7);
+  bb.textContent=left>0?`🎁 Keyingi bonus: ${Math.floor(left/36e5)}s ${Math.floor(left%36e5/6e4)}d`:`🎁 Bonus +${next} (seriya: ${s.streak})`;
+}
+
+async function act(action,i,x){
+  try{
+    const d=await api(action,i,x);set(d);
+    if(d.err)toast(errMsg(d.err));
+    else if(action==='ad_add'){closeForm();toast("✅ Vazifa qo'shildi");}
+    else if(action==='ad_check')toast('✅ Mukofot olindi');
+    if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
+    if(action==='load'&&d.offline>=1)toast('⏳ Yo\'qligingizda +'+fmt(d.offline)+' coin yig\'ildi');
+    if(action==='top')showTop(d);
+    if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'✅ +'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
+  }catch(e){toast(e.message||'Xato')}
+  if(!$('v-tk').hidden)renderTasks();
+  render();
+}
+
+function showTop(d){
+  $('toplist').innerHTML=d.top.map((u,i)=>`<div class="row ${u.name==='Siz'?'me':''}"><span>${['🥇','🥈','🥉'][i]||(i+1)+'.'} ${u.name.replace(/</g,'&lt;')}</span><b>🪙 ${fmt(u.coins)}</b></div>`).join('');
+  $('myrank').textContent='Sizning o\'rningiz: #'+d.rank;
+}
+
+function link(){return `https://t.me/${s.bot}?start=ref_${s.me}`}
+function showFriends(){
+  if(!s)return;
+  $('refs').textContent='Taklif qilingan do\'stlar: '+s.refs;
+  $('link').textContent=link();
+}
+$('share').onclick=async()=>{
+  const url=link(),text='Coin Mine o\'yiniga qo\'shiling va bonus oling! ⛏️';
+  if(online&&tg.openTelegramLink)tg.openTelegramLink('https://t.me/share/url?url='+encodeURIComponent(url)+'&text='+encodeURIComponent(text));
+  else{try{await navigator.clipboard.writeText(url);toast('Havola nusxalandi')}catch(e){toast('Havolani qo\'lda nusxalang')}}
+};
+
+document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+  document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('on',x===b));
+  ['mine','top','fr','tk'].forEach(t=>$('v-'+t).hidden=t!==b.dataset.t);
+  if(b.dataset.t==='tk'){renderTasks();act('tasks');}
+  if(b.dataset.t==='top')act('top');
+  if(b.dataset.t==='fr')showFriends();
+});
+$('bonus').onclick=()=>act('bonus');
+
+const TASKS=[
+  {id:'channel',e:'📢',n:"Kanalga obuna bo'ling",r:2000},
+  {id:'friends3',e:'👥',n:"3 ta do'st taklif qiling",r:3000},
+  {id:'level10',e:'🏗️',n:'Jami 10 daraja oshiring',r:1500}
+];
+const opened={};
+const errMsg=c=>({limits:"Chegara: 5–10 000 obunachi, 10–5 000 coin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+function renderAds(){
+  $('adlist').innerHTML='';$('myads').innerHTML='';
+  s.ads.forEach(a=>{
+    const d=document.createElement('div');d.className='card';
+    d.innerHTML=`<div class="ico">📣</div><div class="info"><div class="nm"></div><div class="sub">Mukofot: +${fmt(a.price)} 🪙 · qoldi: ${a.need-a.done}</div></div><button class="buy"></button>`;
+    d.querySelector('.nm').textContent=a.channel;
+    const k='ad'+a.id,b=d.querySelector('button');
+    const needGo=!opened[k];
+    b.textContent=needGo?'Bajarish':'Tekshirish';
+    b.onclick=()=>{if(needGo){openCh(k,a.channel);return;}act('ad_check',a.id);};
+    $('adlist').appendChild(d);
+  });
+  $('myh').hidden=!s.myAds.length;
+  s.myAds.forEach(a=>{
+    const d=document.createElement('div');d.className='card';
+    d.innerHTML=`<div class="ico">📊</div><div class="info"><div class="nm"></div><div class="sub">${a.done} / ${a.need} obunachi · har biri ${fmt(a.price)} 🪙</div></div>`;
+    d.querySelector('.nm').textContent=a.channel;$('myads').appendChild(d);
+  });
+}
+function openCh(k,ch){
+  opened[k]=1;
+  if(ch){const u='https://t.me/'+ch.replace('@','');
+    if(online&&tg.openTelegramLink)tg.openTelegramLink(u);else{try{window.open(u,'_blank')}catch(e){}}}
+  renderTasks();
+}
+const adv=()=>{const need=Math.floor(+$('adneed').value),price=Math.floor(+$('adprice').value);return{need,price,total:need*price,ch:$('adch').value.trim()}};
+function adCheck(){
+  const v=adv();
+  if(!/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(v.ch))return{v,msg:"Kanal username'ini kiriting (masalan @kanal)"};
+  if(!(v.need>=5&&v.need<=10000))return{v,msg:"Obunachi soni 5 dan 10 000 gacha bo'lsin"};
+  if(!(v.price>=10&&v.price<=5000))return{v,msg:"Narx 10 dan 5 000 coin gacha bo'lsin"};
+  if(live()<v.total)return{v,msg:'Coin yetarli emas: kerak '+fmt(v.total)+', sizda '+fmt(live())};
+  return{v};
+}
+function adUpdate(){
+  const c=adCheck();
+  $('adsum').textContent=c.msg||`Jami: ${fmt(c.v.total)} 🪙 (sizda: ${fmt(live())})`;
+  $('adpay').textContent=c.v.total>0?"💳 To'lash va qo'shish · "+fmt(c.v.total)+' 🪙':"➕ Qo'shish";
+}
+['adch','adneed','adprice'].forEach(id=>$(id).oninput=adUpdate);
+$('plus').onclick=()=>{$('adform').hidden=!$('adform').hidden;adUpdate();};
+$('adpay').onclick=()=>{const c=adCheck();if(c.msg){toast(c.msg);adUpdate();return;}act('ad_add',null,{channel:c.v.ch,need:c.v.need,price:c.v.price});};
+function closeForm(){$('adform').hidden=true;['adch','adneed','adprice'].forEach(id=>$(id).value='');}
+function renderTasks(){
+  if(!s)return;
+  $('tasks').innerHTML='';renderAds();
+  TASKS.forEach(T=>{
+    const done=s.tasks.includes(T.id),d=document.createElement('div');d.className='card';
+    d.innerHTML=`<div class="ico">${T.e}</div><div class="info"><div class="nm">${T.n}</div><div class="sub">Mukofot: +${fmt(T.r)} 🪙</div></div><button class="buy"></button>`;
+    const b=d.querySelector('button');
+    b.disabled=done;
+    const needGo=T.id==='channel'&&!opened[T.id];
+    b.textContent=done?'✔':needGo?'Bajarish':'Tekshirish';
+    b.onclick=()=>{
+      if(needGo){openCh(T.id,s.channel);return;}
+      act('task',T.id);
+    };
+    $('tasks').appendChild(d);
+  });
+}
+
+act('load');
+setInterval(render,200);
+</script>
+</body>
+</html>
