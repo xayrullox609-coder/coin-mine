@@ -1,3 +1,4 @@
+<!-- index.html kodi — 1-qism (1-142-qatorlar) -->
 <!DOCTYPE html>
 <html lang="uz">
 <head>
@@ -126,7 +127,8 @@
   @keyframes rp{to{transform:scale(7);opacity:0}}
   .spark{position:fixed;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:50%;background:#ffd45a;pointer-events:none;animation:sp .6s ease-out forwards;z-index:29}
   @keyframes sp{to{transform:translate(var(--sx),var(--sy)) scale(.2);opacity:0}}
-  .acts{display:flex;flex-direction:column;gap:6px}.acts .buy{min-width:98px;padding:8px 10px;font-size:13px}
+  .acts{display:flex;flex-direction:column;gap:6px}
+  .acts .buy{min-width:98px;padding:8px 10px;font-size:13px}
   .acts .go{background:linear-gradient(135deg,#0ea5e9,#3b82f6)}
   .done{color:#10b981;display:flex;padding:0 8px}
   /* Bosish bo'limi sahifa bilan bir butun */
@@ -147,7 +149,7 @@
 
 <section id="v-mine">
   <div class="tapwrap">
-        <div id="coins"></div>
+    <div id="coins"></div>
     <div class="tapx" id="tapx">Tap x 1</div>
     <button class="tapcoin" id="tapcoin" aria-label="Tanga"></button>
     <div class="two">
@@ -210,7 +212,8 @@
   </div>
   <div id="p-fr" class="card col" hidden>
     <div class="nm">Do'stlarni taklif qiling</div>
-    <div class="sub">Har bir do'st uchun +1000 coin, do'stingiz ham +1000 coin oladi.</div>    <div class="note" id="refs"></div>
+    <div class="sub">Har bir do'st uchun +1000 coin, do'stingiz ham +1000 coin oladi.</div>
+    <div class="note" id="refs"></div>
     <div class="link" id="link"></div>
     <button class="primary" id="share">Do'stga yuborish</button>
   </div>
@@ -279,8 +282,7 @@ const IC={
  card:'<rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 10h20"/>',
  plus:'<path d="M5 12h14"/><path d="M12 5v14"/>',
  layers:'<path d="m12 2 10 5-10 5L2 7z"/><path d="m2 17 10 5 10-5"/><path d="m2 12 10 5 10-5"/>',
- leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>',
- crown:'<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/>',
+ leaf:'<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>', crown:'<path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7z"/><path d="M5 20h14"/>',
  user:'<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
  shield:'<path d="M12 3 4 6v6c0 5 3.4 8 8 9 4.6-1 8-4 8-9V6z"/><path d="m9 12 2 2 4-4"/>',
  ticket:'<path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/>',
@@ -328,7 +330,7 @@ const fmt=n=>n>=1e9?(n/1e9).toFixed(2)+'B':n>=1e6?(n/1e6).toFixed(2)+'M':n>=1e4?
 
 const tg=window.Telegram&&window.Telegram.WebApp, online=!!(tg&&tg.initData);
 if(tg){tg.ready();tg.expand();}
-$('mode').textContent=online?'':'Demo rejim: ma\'lumot faqat shu brauzerda saqlanadi';
+$('mode').textContent=online?'':"Demo rejim: ma'lumot faqat shu brauzerda saqlanadi";
 
 const BOTS=[['Aziz',48200],['Madina',31500],['Jasur',22100],['Dilnoza',15800],['Sardor',9400],['Malika',6100],['Bekzod',3300]];
 
@@ -349,7 +351,8 @@ async function api(action,i,x){
   if(action==='order'){const it=SVI[x.svc],cnt=Math.floor(+x.count),tgt=String(x.target||'').trim();
     if(!it)err='gone';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
     else{r.diamonds-=it.p*cnt;r.orders.unshift({id:Date.now(),svc:x.svc,count:cnt,total:it.p*cnt,status:'new'});}}
-  if(action==='buy_stars')err='demo_pay';if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
+  if(action==='buy_stars')err='demo_pay';
+  if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
   if(action==='buy'){if(!(i>=1&&i<SK.length)||r.skins.includes(i))err='gone';else if(!r.skins.includes(i-1))err='locked';else if(r.diamonds<SK[i].cost)err='diamonds';else{r.diamonds-=SK[i].cost;r.skins.push(i);r.skin=i;}}
   if(action==='select'){if(r.skins.includes(i))r.skin=i;else err='locked';}
   if(action==='exchange'){const n=Math.floor(+x.n);if(!(n>=1&&n<=100000))err='bad_amount';else if(r.coins<n*EXCH)err='funds';else{r.coins-=n*EXCH;r.diamonds+=n;}}
@@ -551,6 +554,7 @@ const TASKS=[
   {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
 ];
 const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Paket soni 1 dan 100 gacha bo'lsin",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+
 function taskBtns(d,done,goFn,checkFn){
   const w=document.createElement('div');w.className='acts';
   if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
@@ -562,8 +566,7 @@ function taskBtns(d,done,goFn,checkFn){
 }
 function renderAds(){
   $('adlist').innerHTML='';$('myads').innerHTML='';
-  s.ads.forEach(a=>{
-    const d=document.createElement('div');d.className='card';
+  s.ads.forEach(a=>{    const d=document.createElement('div');d.className='card';
     d.innerHTML=`<div class="ico" style="background:linear-gradient(135deg,#fb7185,#e11d48)">${ic('megaphone',24)}</div><div class="info"><div class="nm"></div><div class="sub">Mukofot: +${a.price} ${dia(14)} · qoldi: ${a.need-a.done}</div></div>`;
     d.querySelector('.nm').textContent=a.channel;
     taskBtns(d,false,()=>openCh(a.channel),()=>act('ad_check',a.id));
@@ -588,7 +591,8 @@ function adCheck(){
   if(!(v.need>=5&&v.need<=10000))return{v,msg:"Obunachi soni 5 dan 10 000 gacha bo'lsin"};
   if(s.diamonds<v.total)return{v,msg:'Olmos yetarli emas: kerak '+v.total+', sizda '+s.diamonds};
   return{v};
-}function adUpdate(){
+}
+function adUpdate(){
   const c=adCheck();
   $('adsum').textContent=c.msg||`Jami: ${c.v.total} olmos (sizda: ${s.diamonds})`;
   $('adpay').innerHTML=c.v.total>0?ic('card',18)+" To'lash va qo'shish · "+c.v.total+' olmos':ic('plus',18)+" Qo'shish";
@@ -612,14 +616,14 @@ function renderProfile(){
   if(s.codeLocked||document.activeElement!==$('mycode'))$('mycode').value=s.code;
   $('mycode').readOnly=!!s.codeLocked;$('codesave').disabled=!!s.codeLocked;
   $('codehint').textContent=s.codeLocked?"Kodingiz o'zgartirilgan, endi qayta o'zgartirib bo'lmaydi.":"Sizga tasodifiy kod berilgan. Uni faqat 1 marta o'zgartirish mumkin.";
-  if(!s.admin){['p-admin','menu-admin'].forEach(id=>{const el=$(id);if(el)el.remove();});}   // admin bo'lmaganlar uchun sahifadan butunlay olib tashlanadi
+  if(!s.admin){['p-admin','menu-admin'].forEach(id=>{const el=$(id);if(el)el.remove();});}
   else $('menu-admin').hidden=false;
   $('aplist').innerHTML=s.promos.length?s.promos.map(p=>`<div class="row"><b>${p.code.replace(/</g,'&lt;')}</b><span>${fmt(p.reward)} coin · ${p.used}/${p.max}</span></div>`).join(''):'<div class="sub">Hali promokod qo\'shilmagan</div>';
 }
 const PT={admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
 function openPanel(key){
   const el=$('p-'+key);if(!el)return;
-  openModal('panel');                    // oldingi oynani yopib, panelni alohida oynaga ko'chiradi
+  openModal('panel');
   $('mbody').innerHTML=head(PT[key],'');
   movedEl=el;$('mbody').appendChild(el);el.hidden=false;
 }
