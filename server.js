@@ -4,7 +4,8 @@ import crypto from 'crypto';
 import pg from 'pg';
 import { Telegraf, Markup } from 'telegraf';
 
-const { BOT_TOKEN, BOT_USERNAME = '', CHANNEL = '', ADMIN_ID = '', PORT = 3000, DATABASE_URL } = process.env;
+const { BOT_TOKEN, CHANNEL = '', ADMIN_ID = '', PORT = 3000, DATABASE_URL } = process.env;
+const BOT_USERNAME = (process.env.BOT_USERNAME || '').trim().replace(/^@/, '');   // @ belgisi bo'lsa ham olib tashlanadi
 const WEBAPP_URL = process.env.WEBAPP_URL || process.env.RENDER_EXTERNAL_URL; // Render o'zi beradi
 if (!BOT_TOKEN || !WEBAPP_URL || !DATABASE_URL) {
   console.error('.env: BOT_TOKEN, DATABASE_URL va WEBAPP_URL kerak');
@@ -56,6 +57,10 @@ CREATE TABLE IF NOT EXISTS orders (id SERIAL PRIMARY KEY, user_id BIGINT NOT NUL
 CREATE TABLE IF NOT EXISTS payments (charge_id TEXT PRIMARY KEY, user_id BIGINT NOT NULL, kind TEXT NOT NULL, stars INT NOT NULL, created BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS codes_used (code TEXT PRIMARY KEY);   -- berilgan yoki tanlangan har bir kod bir marta ishlatiladi
 ALTER TABLE users ADD COLUMN IF NOT EXISTS code_locked BOOLEAN NOT NULL DEFAULT FALSE;
+CREATE TABLE IF NOT EXISTS auctions (id SERIAL PRIMARY KEY, title TEXT NOT NULL, descr TEXT NOT NULL DEFAULT '', image BYTEA, mime TEXT,
+  status TEXT NOT NULL DEFAULT 'active', winner_name TEXT, win_amount BIGINT, created BIGINT NOT NULL);
+CREATE TABLE IF NOT EXISTS bids (id SERIAL PRIMARY KEY, auction_id INT NOT NULL, user_id BIGINT NOT NULL, name TEXT, amount BIGINT NOT NULL, created BIGINT NOT NULL);
+CREATE INDEX IF NOT EXISTS bids_auction ON bids (auction_id, amount DESC);
 INSERT INTO codes_used (code) SELECT code FROM users WHERE code IS NOT NULL ON CONFLICT DO NOTHING;
 `);
 
@@ -95,9 +100,17 @@ setInterval(() => hits.clear(), 60000);
 
 const app = express();
 app.disable('x-powered-by');
-app.use(express.json({ limit: '10kb' }));
+app.use(express.json({ limit: '1mb' }));   // auksion rasmi uchun (rasm 600 KB gacha)
 app.use(express.static('public'));
 app.get('/healthz', (req, res) => res.send('ok'));
+// Auksion rasmlari bazadan beriladi (brauzer keshlaydi)
+app.get('/img/:id', async (req, res) => {
+  try {
+    const r = (await pool.query('SELECT image, mime FROM auctions WHERE id=$1', [Number(req.params.id) || 0])).rows[0];
+    if (!r || !r.image) return res.status(404).end();
+    res.set('Content-Type', r.mime || 'image/jpeg').set('Cache-Control', 'public, max-age=86400').send(r.image);
+  } catch { res.status(500).end(); }
+});
 
 app.post('/api/act', async (req, res) => {
   const b = req.body || {};
@@ -152,6 +165,7 @@ app.post('/api/act', async (req, res) => {
       await c.query('INSERT INTO codes_used (code) VALUES ($1)', [myCode]);
     }
     let err = null, notify = null, adminMsg = null;
+    const notes = [];
     const S = SKINS[skin];
 
     if (action === 'tap') {
@@ -235,6 +249,50 @@ app.post('/api/act', async (req, res) => {
         await c.query('INSERT INTO promo_uses (code, user_id) VALUES ($1,$2)', [k, u.id]);
         await c.query('UPDATE promos SET used = used + 1 WHERE code=$1', [k]);
       }
+    } else if (action === 'bid') {
+      // Tikilgan coin ushlab turiladi; ustidan oshib ketilsa, avvalgi yetakchiga qaytariladi
+      const id = Number(b.id) || 0, amt = Math.floor(Number(b.amount));
+      const au = (await Q(c, 'SELECT id, title, status FROM auctions WHERE id=$1 FOR UPDATE', [id]))[0];
+      if (!au || au.status !== 'active') err = 'auction_gone';
+      else {
+        const top = (await Q(c, 'SELECT user_id, amount FROM bids WHERE auction_id=$1 ORDER BY amount DESC LIMIT 1', [id]))[0];
+        const topAmt = top ? Number(top.amount) : 0, mine = Boolean(top) && Number(top.user_id) === u.id;
+        if (!(amt >= 1 && amt <= 1e12) || amt <= topAmt) err = 'bid_low';           // oldingisidan ko'p bo'lishi shart
+        else if (coins + (mine ? topAmt : 0) < amt) err = 'funds';
+        else {
+          coins = coins + (mine ? topAmt : 0) - amt;
+          if (top && !mine) {
+            await c.query('UPDATE users SET coins = coins + $1 WHERE id=$2', [topAmt, top.user_id]);
+            notes.push([top.user_id, `"${au.title}" auksionida sizning tikishingiz ustidan oshib ketildi (${amt} coin). Coiningiz qaytarildi.`]);
+          }
+          await c.query('INSERT INTO bids (auction_id, user_id, name, amount, created) VALUES ($1,$2,$3,$4,$5)', [id, u.id, u.first_name || 'Foydalanuvchi', amt, now]);
+        }
+      }
+    } else if (action === 'admin_auction_add' && isAdmin) {
+      const title = String(b.title || '').trim(), descr = String(b.descr || '').trim();
+      const m = /^data:(image\/(?:jpeg|png|webp));base64,([A-Za-z0-9+/=]+)$/.exec(String(b.image || ''));
+      const buf = m ? Buffer.from(m[2], 'base64') : null;
+      if (title.length < 2 || title.length > 80 || descr.length > 600) err = 'bad_auction';
+      else if (b.image && (!buf || buf.length > 600 * 1024)) err = 'bad_image';
+      else await c.query('INSERT INTO auctions (title, descr, image, mime, created) VALUES ($1,$2,$3,$4,$5)', [title, descr, buf, m ? m[1] : null, now]);
+    } else if ((action === 'admin_auction_end' || action === 'admin_auction_cancel') && isAdmin) {
+      const id = Number(b.id) || 0;
+      const au = (await Q(c, 'SELECT id, title, status FROM auctions WHERE id=$1 FOR UPDATE', [id]))[0];
+      if (!au || au.status !== 'active') err = 'auction_gone';
+      else {
+        const top = (await Q(c, 'SELECT user_id, name, amount FROM bids WHERE auction_id=$1 ORDER BY amount DESC LIMIT 1', [id]))[0];
+        if (action === 'admin_auction_end') {
+          await c.query("UPDATE auctions SET status='ended', winner_name=$2, win_amount=$3 WHERE id=$1", [id, top ? top.name : null, top ? top.amount : null]);
+          if (top) notes.push([top.user_id, `Tabriklaymiz! Siz "${au.title}" auksionida g'olib bo'ldingiz (${top.amount} coin). Admin siz bilan bog'lanadi.`]);
+        } else {
+          await c.query("UPDATE auctions SET status='cancelled' WHERE id=$1", [id]);
+          if (top) {
+            if (Number(top.user_id) === u.id) coins += Number(top.amount);
+            else await c.query('UPDATE users SET coins = coins + $1 WHERE id=$2', [top.amount, top.user_id]);
+            notes.push([top.user_id, `"${au.title}" auksioni bekor qilindi, ${top.amount} coin qaytarildi.`]);
+          }
+        }
+      }
     } else if (action === 'order') {
       const sv = SERVICES[b.svc], cnt = Math.floor(Number(b.count)), tgt = String(b.target || '').trim();
       if (!sv) err = 'gone';
@@ -287,9 +345,20 @@ app.post('/api/act', async (req, res) => {
       out.top = await Q(c, 'SELECT name, coins FROM users ORDER BY coins DESC LIMIT 10');
       out.rank = (await Q(c, 'SELECT COUNT(*) + 1 AS r FROM users WHERE coins > $1', [coins]))[0].r;
     }
+    if (['auctions', 'auction', 'bid', 'admin_auction_add', 'admin_auction_end', 'admin_auction_cancel'].includes(action)) {
+      out.auctions = await Q(c, `SELECT a.id, a.title, a.descr, a.status, a.created, a.winner_name, a.win_amount, (a.image IS NOT NULL) AS has_img,
+          COALESCE(t.amount, 0) AS top, t.name AS top_name, (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) AS cnt
+        FROM auctions a LEFT JOIN LATERAL (SELECT amount, name FROM bids WHERE auction_id = a.id ORDER BY amount DESC LIMIT 1) t ON TRUE
+        ORDER BY (a.status = 'active') DESC, a.id DESC LIMIT 30`);
+    }
+    if (action === 'auction' || action === 'bid') {
+      out.aid = Number(b.id) || 0;
+      out.bids = await Q(c, 'SELECT name, amount, (user_id = $2) AS mine FROM bids WHERE auction_id = $1 ORDER BY amount DESC LIMIT 30', [out.aid, u.id]);
+    }
     await c.query('COMMIT');
     res.json(out);
     if (notify) bot.telegram.sendMessage(notify[0], notify[1]).catch(() => {});
+    for (const [nid, nt] of notes) bot.telegram.sendMessage(nid, nt).catch(() => {});
     if (adminMsg && ADMIN_ID) {
       bot.telegram.sendMessage(ADMIN_ID, adminMsg.text, Markup.inlineKeyboard([[
         Markup.button.callback('Bajarildi', `ok:${adminMsg.oid}`), Markup.button.callback('Rad etish', `no:${adminMsg.oid}`)]]))
