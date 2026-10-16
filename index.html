@@ -235,6 +235,7 @@
   <button class="menu" data-p="buy"><div class="ico" style="background:linear-gradient(135deg,#facc15,#d97706)"><i data-ic="star" data-s="20"></i></div>Coin va olmos sotib olish<b>›</b></button>
   <button class="menu" data-p="top"><div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i data-ic="trophy" data-s="20"></i></div>Reyting<b>›</b></button>
   <button class="menu" data-p="fr"><div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)"><i data-ic="users" data-s="20"></i></div>Do'stlar<b>›</b></button>
+  <button class="menu" data-p="p2p"><div class="ico" style="background:linear-gradient(135deg,#22c55e,#0ea5e9)"><i data-ic="swap" data-s="20"></i></div>P2P bozori<b>›</b></button>
 
   <div id="p-buy" class="card col" hidden>
     <div class="nm">Coin va olmos sotib olish</div>
@@ -255,6 +256,25 @@
     <div class="note" id="refs"></div>
     <div class="link" id="link"></div>
     <button class="primary" id="share">Do'stga yuborish</button>
+  </div>
+  <div id="p-p2p" class="card col" hidden>
+    <div class="topbid"><span>Stars hamyon</span><b id="sbal">0 Stars</b></div>
+    <div class="sub">Sotuvdan tushgan Stars shu hamyonga yoziladi. Yechib olish uchun so'rov yuborasiz, admin to'laydi (kamida 50 Stars).</div>
+    <button class="sb own" id="wdbtn">Stars yechish</button>
+    <div id="wdform" hidden>
+      <input id="wdamt" type="number" inputmode="numeric" placeholder="Nechta Stars (kamida 50)">
+      <input id="wdnote" placeholder="To'lov ma'lumoti (karta yoki telefon raqami)" maxlength="200">
+      <button class="primary" id="wdsend">So'rov yuborish</button>
+    </div>
+    <div class="bhead">SOTUVDAGI OLMOSLAR</div>
+    <div id="p2plist"></div>
+    <div class="bhead">OLMOS SOTISH</div>
+    <input id="p2pd" type="number" inputmode="numeric" placeholder="Nechta olmos (kamida 10)">
+    <input id="p2ps" type="number" inputmode="numeric" placeholder="Necha Stars evaziga (1-5000)">
+    <div class="sub" id="p2psum"></div>
+    <button class="primary" id="p2padd">Sotuvga qo'yish</button>
+    <div class="bhead">MENING TAKLIFLARIM</div>
+    <div id="p2pmy"></div>
   </div>
   <div id="p-code" class="card col" hidden>
     <div class="nm">Mening kodim</div>
@@ -344,7 +364,8 @@ const IC={
  play:'<rect x="2" y="5" width="20" height="14" rx="4"/><path d="m10 9 5 3-5 3z"/>',
  gamepad:'<path d="M6 12h4M8 10v4"/><circle cx="15" cy="13" r="1"/><circle cx="18" cy="11" r="1"/><path d="M17.3 5H6.7a4 4 0 0 0-3.9 3.1l-1.5 6.5A3 3 0 0 0 4.2 18c.9 0 1.7-.5 2.1-1.2L7 15h10l.7 1.8c.4.7 1.2 1.2 2.1 1.2a3 3 0 0 0 2.9-3.4l-1.5-6.5A4 4 0 0 0 17.3 5z"/>',
  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
- gavel:'<path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>'
+ gavel:'<path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>',
+ swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>'
 };
 const ic=(n,s=20)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
 const coin=(s=16)=>`<svg class="c" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#f5b800" stroke="#c98a00" stroke-width="1.2"/><circle cx="12" cy="12" r="7.3" fill="none" stroke="#c98a00" stroke-width="1.4"/><path d="M13.9 9.3a3 3 0 1 0 0 5.4" fill="none" stroke="#c98a00" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -400,6 +421,16 @@ async function api(action,i,x){
   r.diamonds=r.diamonds??500;r.skins=r.skins||[0];r.skin=r.skin??0;r.taps=r.taps||0;
   const offline=0;let err=null;r.updated=now;
   const day=Math.floor(now/DAY);if(r.tapday!==day){r.taps=0;r.tapday=day;}
+  r.p2p=r.p2p||[{id:1,seller_name:'Aziz',diamonds:120,stars:6,status:'active',own:false},{id:2,seller_name:'Madina',diamonds:500,stars:25,status:'active',own:false},{id:3,seller_name:'Jasur',diamonds:60,stars:4,status:'active',own:false}];
+  r.starsBal=r.starsBal||0;
+  if(action==='p2p_create'){const dn=Math.floor(+x.diamonds),st=Math.floor(+x.stars);
+    if(!(dn>=10)||!(st>=1&&st<=5000))err='p2p_bad';else if(r.diamonds<dn)err='diamonds';
+    else if(r.p2p.filter(o=>o.own&&o.status==='active').length>=5)err='p2p_many';
+    else{r.diamonds-=dn;r.p2p.unshift({id:Date.now(),seller_name:'Siz',diamonds:dn,stars:st,status:'active',own:true});}}
+  if(action==='p2p_cancel'){const o=r.p2p.find(z=>z.id===i&&z.own&&z.status==='active');if(!o)err='p2p_gone';else{o.status='cancelled';r.diamonds+=o.diamonds;}}
+  if(action==='p2p_buy')err='demo_pay';
+  if(action==='stars_withdraw')err=(+x.amount>=50)?'wd_funds':'wd_min';
+  const p2pOut={offers:r.p2p.filter(o=>!o.own&&o.status==='active').sort((a,b)=>a.stars/a.diamonds-b.stars/b.diamonds).map(o=>({id:o.id,seller_name:o.seller_name,diamonds:o.diamonds,stars:o.stars})),myOffers:r.p2p.filter(o=>o.own).map(o=>({id:o.id,diamonds:o.diamonds,stars:o.stars,status:o.status}))};
   r.auc=r.auc||[
    {id:1,title:'iPhone 15 Pro',descr:"Yangi, qadoqlangan. Auksion g'olibiga sovg'a sifatida beriladi.",status:'active',created:1,bids:[{name:'Jasur',amount:500},{name:'Madina',amount:900},{name:'Aziz',amount:1200}]},
    {id:2,title:'Telegram Premium (1 yil)',descr:'Premium obuna kodi.',status:'active',created:2,bids:[{name:'Dilnoza',amount:300}]}];
@@ -448,6 +479,7 @@ async function api(action,i,x){
   try{localStorage.setItem('cmpro',JSON.stringify(r))}catch(e){}
   const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0),admin:false};
   out.auctions=auList;
+  Object.assign(out,p2pOut,{starsBal:r.starsBal});
   if(action==='auction'||action==='bid'){const a=r.auc.find(z=>z.id===i);out.aid=i;out.bids=a?[...a.bids].reverse().map(b=>({name:b.name,amount:b.amount,mine:!!b.mine})):[];}
   if(action==='load')out.offline=offline;
   if(action==='top'){
@@ -458,7 +490,7 @@ async function api(action,i,x){
 }
 
 let s=null;
-const set=d=>{const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),t:Date.now()}};
+const set=d=>{const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),starsBal:d.starsBal!==undefined?d.starsBal:(s?s.starsBal:0),offers:d.offers!==undefined?d.offers:(s?s.offers:[]),myOffers:d.myOffers!==undefined?d.myOffers:(s?s.myOffers:[]),t:Date.now()}};
 const live=()=>s.coins;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800)}
 
@@ -500,9 +532,9 @@ setInterval(flush,1000);
 function render(){
   if(!s)return;
   const k=SK[s.skin],en=energy();
-  $('coins').innerHTML=coin(44)+'<span>'+fmt(s.coins)+'</span>';
+  {const h=cs(s.skin,48)+'<span>'+fmt(s.coins)+'</span>';if($('coins')._h!==h){$('coins').innerHTML=h;$('coins')._h=h;}}   // o'rtadagi tanga rasmi bilan bir xil
   $('gcn').textContent=fmt(s.coins);$('gdn').textContent=fmt(s.diamonds);
-  $('gd').innerHTML=dia(22);$('gc').innerHTML=coin(20);
+  $('gd').innerHTML=dia(22);{const h=cs(s.skin,26);if($('gc')._h!==h){$('gc').innerHTML=h;$('gc')._h=h;}}
   $('tapx').textContent='Tap x '+k.m;
   $('etext').textContent=en+'/'+k.cap;$('efill').style.width=(en/k.cap*100)+'%';
   const tc=$('tapcoin');if(tc.dataset.k!==String(s.skin)){tc.dataset.k=s.skin;tc.innerHTML=cs(s.skin,'100%');tc.style.filter='drop-shadow(0 12px 34px rgba('+GLOW[s.skin]+'))';}
@@ -557,6 +589,9 @@ async function act(action,i,x){
     if(d.err)toast(errMsg(d.err));
     else if(action==='ad_add'){closeForm();toast("Vazifa qo'shildi");}
     else if(action==='ad_check')toast('Mukofot: +1 olmos');
+    else if(action==='p2p_create'){toast("Olmos sotuvga qo'yildi");['p2pd','p2ps'].forEach(id=>$(id).value='');}
+    else if(action==='p2p_cancel')toast('Taklif bekor qilindi, olmos qaytarildi');
+    else if(action==='stars_withdraw'){toast("So'rov adminga yuborildi");$('wdform').hidden=true;['wdamt','wdnote'].forEach(id=>$(id).value='');}
     else if(action==='bid'){toast('Tikish qabul qilindi');if($('bidamt'))$('bidamt').value='';}
     else if(action==='admin_auction_add'){toast('Auksion joylandi');['atitle','adesc'].forEach(id=>$(id).value='');aImg='';$('aprev').hidden=true;$('aimg').value='';}
     else if(action==='admin_auction_end')toast('Auksion yakunlandi, g\'olibga xabar yuborildi');
@@ -576,8 +611,8 @@ async function act(action,i,x){
     if(tg&&tg.HapticFeedback)tg.HapticFeedback.impactOccurred('light');
     if(action==='load'&&d.offline>=1)toast('Yo\'qligingizda +'+fmt(d.offline)+' coin yig\'ildi');
     if(action==='top')showTop(d);
-    if(action==='buy_stars'&&d.invoice&&!d.err&&tg&&tg.openInvoice)tg.openInvoice(d.invoice,st=>{
-      if(st==='paid'){toast("To'lov qabul qilindi, balans yangilanmoqda");setTimeout(()=>act('profile'),1500);setTimeout(()=>act('profile'),5000);}
+    if((action==='buy_stars'||action==='p2p_buy')&&d.invoice&&!d.err&&tg&&tg.openInvoice)tg.openInvoice(d.invoice,st=>{
+      if(st==='paid'){toast("To'lov qabul qilindi, balans yangilanmoqda");const rf=action==='p2p_buy'?'p2p':'profile';setTimeout(()=>act(rf),1500);setTimeout(()=>act(rf),5000);}
       else if(st==='failed')toast("To'lov amalga oshmadi");
     });
     if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'+'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
@@ -587,6 +622,7 @@ async function act(action,i,x){
   if(!$('v-bs').hidden)renderBoost();
   if(!$('v-au').hidden)renderAuc();
   if(movedEl&&movedEl.id==='p-admin')renderAdminAuc();
+  if(movedEl&&movedEl.id==='p-p2p')renderP2P();
   if(modalMode)drawModal();
   render();
 }
@@ -625,7 +661,7 @@ const TASKS=[
   {id:'friends3',e:'users',n:"3 ta do'st taklif qiling",r:3000},
   {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
 ];
-const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Paket soni 1 dan 100 gacha bo'lsin",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos, narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"To'lov ma'lumotini yozing (3-200 belgi)",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Paket soni 1 dan 100 gacha bo'lsin",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
 function taskBtns(d,done,goFn,checkFn){
   const w=document.createElement('div');w.className='acts';
   if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
@@ -692,7 +728,7 @@ function renderProfile(){
   else $('menu-admin').hidden=false;
   $('aplist').innerHTML=s.promos.length?s.promos.map(p=>`<div class="row"><b>${p.code.replace(/</g,'&lt;')}</b><span>${fmt(p.reward)} coin · ${p.used}/${p.max}</span></div>`).join(''):'<div class="sub">Hali promokod qo\'shilmagan</div>';
 }
-const PT={admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
+const PT={p2p:'P2P bozori',admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
 function openPanel(key){
   const el=$('p-'+key);if(!el)return;
   openModal('panel');                    // oldingi oynani yopib, panelni alohida oynaga ko'chiradi
@@ -707,6 +743,7 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
   if(k==='fr')showFriends();
   if(k==='buy')starUpdate();
   if(k==='admin')act('auctions');
+  if(k==='p2p')act('p2p');
 });
 $('codesave').onclick=()=>{
   const c=$('mycode').value.trim().toUpperCase();
@@ -815,6 +852,37 @@ $('aadd').onclick=()=>{
   if(title.length<2){toast('Buyum nomini yozing');return;}
   act('admin_auction_add',null,{title,descr:$('adesc').value.trim(),image:aImg});
 };
+
+function renderP2P(){
+  if(!s||!$('p2plist'))return;
+  $('sbal').textContent=fmt(s.starsBal||0)+' Stars';
+  const L=$('p2plist');L.innerHTML='';
+  if(!(s.offers||[]).length)L.innerHTML='<div class="sub">Hozircha sotuvda olmos yo\'q</div>';
+  (s.offers||[]).forEach(o=>{
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML=`<span>${dia(16)} <b>${fmt(o.diamonds)}</b> olmos<br><small style="color:var(--muted)">${esc(o.seller_name||'')}</small></span><button class="buy">${star(14)} ${o.stars} Stars</button>`;
+    r.querySelector('button').onclick=()=>act('p2p_buy',o.id);
+    L.appendChild(r);
+  });
+  const M=$('p2pmy');M.innerHTML='';
+  (s.myOffers||[]).forEach(o=>{
+    const r=document.createElement('div');r.className='row';
+    const st={active:'Sotuvda',sold:'Sotildi',cancelled:'Bekor qilingan'}[o.status]||o.status;
+    r.innerHTML=`<span>${fmt(o.diamonds)} olmos · ${o.stars} Stars<br><small style="color:var(--muted)">${st}</small></span>`+(o.status==='active'?'<button class="buy" style="background:#64748b">Bekor</button>':'');
+    const b=r.querySelector('button');
+    if(b)b.onclick=()=>ask('Taklifni bekor qilasizmi? '+o.diamonds+' olmos qaytariladi.',()=>act('p2p_cancel',o.id));
+    M.appendChild(r);
+  });
+  p2pUpdate();
+}
+function p2pUpdate(){
+  const d=Math.floor(+$('p2pd').value)||0,st=Math.floor(+$('p2ps').value)||0;
+  $('p2psum').textContent=d>=10&&st>=1?`${fmt(d)} olmos ${st} Stars ga sotiladi. Olmos darhol yechiladi (bekor qilsangiz qaytadi). Sizda: ${fmt(s?s.diamonds:0)} olmos.`:'Olmos soni (kamida 10) va Stars narxini kiriting';
+}
+$('p2pd').oninput=p2pUpdate;$('p2ps').oninput=p2pUpdate;
+$('p2padd').onclick=()=>act('p2p_create',null,{diamonds:$('p2pd').value,stars:$('p2ps').value});
+$('wdbtn').onclick=()=>{$('wdform').hidden=!$('wdform').hidden;};
+$('wdsend').onclick=()=>act('stars_withdraw',null,{amount:$('wdamt').value,note:$('wdnote').value});
 
 let buyKind='coin';
 function starUpdate(){
