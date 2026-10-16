@@ -22,6 +22,7 @@ const DAY = 864e5, BONUS = 500, REF_BONUS = 1000;
 const EXCH = 10;             // 1 olmos = 10 coin
 const REFILL = 20;           // energiyani to'ldirish = 20 olmos
 const AD_COST = 2;           // reklama beruvchi: 1 obunachi = 2 olmos
+const P2P_FEE = Math.min(50, Math.max(0, Number(process.env.P2P_FEE || 0)));   // P2P bozor komissiyasi (foiz), standart 0
 const AD_REWARD = 1;         // obunachi oladi: 1 olmos
 const TASKS = [{ id: 'channel', reward: 2000 }, { id: 'friends3', reward: 3000 }, { id: 'level10', reward: 1500 }];
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -61,10 +62,19 @@ CREATE TABLE IF NOT EXISTS auctions (id SERIAL PRIMARY KEY, title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active', winner_name TEXT, win_amount BIGINT, created BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS bids (id SERIAL PRIMARY KEY, auction_id INT NOT NULL, user_id BIGINT NOT NULL, name TEXT, amount BIGINT NOT NULL, created BIGINT NOT NULL);
 CREATE INDEX IF NOT EXISTS bids_auction ON bids (auction_id, amount DESC);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS stars_bal BIGINT NOT NULL DEFAULT 0;
+ALTER TABLE auctions ADD COLUMN IF NOT EXISTS ends_at BIGINT;
+CREATE TABLE IF NOT EXISTS p2p_offers (id SERIAL PRIMARY KEY, seller BIGINT NOT NULL, seller_name TEXT, diamonds INT NOT NULL, stars INT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'active', buyer BIGINT, reserved_by BIGINT, reserved_until BIGINT NOT NULL DEFAULT 0, created BIGINT NOT NULL, sold_at BIGINT);
+CREATE TABLE IF NOT EXISTS withdrawals (id SERIAL PRIMARY KEY, user_id BIGINT NOT NULL, amount INT NOT NULL, note TEXT, status TEXT NOT NULL DEFAULT 'new', created BIGINT NOT NULL);
 INSERT INTO codes_used (code) SELECT code FROM users WHERE code IS NOT NULL ON CONFLICT DO NOTHING;
 `);
 
 const Q = async (c, sql, p = []) => (await c.query(sql, p)).rows;
+const isExpired = async (c, id, now) => {
+  const r = (await Q(c, 'SELECT ends_at FROM auctions WHERE id=$1', [id]))[0];
+  return Boolean(r && r.ends_at && Number(r.ends_at) <= now);
+};
 const norm = (c) => { const m = String(c || '').trim().match(/^@?([A-Za-z][A-Za-z0-9_]{4,31})$/); return m ? '@' + m[1] : null; };
 const isMember = async (ch, id) => ['member', 'administrator', 'creator'].includes((await bot.telegram.getChatMember(ch, id)).status);
 let BOT_ID;
@@ -149,6 +159,23 @@ app.post('/api/act', async (req, res) => {
     }
   }
 
+  if (['auctions', 'auction', 'bid'].includes(action)) await sweepAuctions();   // muddati tugagan auksionlarni yakunlaymiz
+
+  // P2P: xaridor uchun Stars to'lov havolasi (olmos to'lov tasdiqlangach o'tkaziladi)
+  if (action === 'p2p_buy') {
+    const o = (await pool.query('SELECT id, seller, diamonds, stars, status FROM p2p_offers WHERE id=$1', [Number(b.id) || 0])).rows[0];
+    if (!o || o.status !== 'active') payErr = 'p2p_gone';
+    else if (Number(o.seller) === u.id) payErr = 'p2p_own';
+    else {
+      try {
+        invoice = await bot.telegram.createInvoiceLink({
+          title: `${o.diamonds} olmos`, description: `P2P bozor: ${o.diamonds} olmos uchun ${o.stars} Stars`, payload: `p2p:${o.id}:${u.id}`,
+          provider_token: '', currency: 'XTR', prices: [{ label: 'Olmos', amount: o.stars }],
+        });
+      } catch (e) { console.error('p2p invoice xatosi:', e.message); payErr = 'pay_fail'; }
+    }
+  }
+
   const c = await pool.connect();
   try {
     await c.query('BEGIN');
@@ -156,6 +183,7 @@ app.post('/api/act', async (req, res) => {
     await c.query('INSERT INTO users (id, name, updated) VALUES ($1,$2,$3) ON CONFLICT (id) DO NOTHING', [u.id, u.first_name || '', now]);
     const row = (await Q(c, 'SELECT * FROM users WHERE id=$1 FOR UPDATE', [u.id]))[0];
     let { coins, diamonds, skin, taps, streak } = row;
+    let starsBal = row.stars_bal;
     let bonusAt = row.bonus_at, myCode = row.code, codeLocked = row.code_locked;
     const skins = JSON.parse(row.skins), tasks = JSON.parse(row.tasks);
     const isAdmin = Boolean(ADMIN_ID) && String(u.id) === String(ADMIN_ID);
@@ -166,6 +194,7 @@ app.post('/api/act', async (req, res) => {
     }
     let err = null, notify = null, adminMsg = null;
     const notes = [];
+    let adminWd = null;
     const S = SKINS[skin];
 
     if (action === 'tap') {
@@ -249,11 +278,36 @@ app.post('/api/act', async (req, res) => {
         await c.query('INSERT INTO promo_uses (code, user_id) VALUES ($1,$2)', [k, u.id]);
         await c.query('UPDATE promos SET used = used + 1 WHERE code=$1', [k]);
       }
+    } else if (action === 'p2p_create') {
+      // Olmos darhol yechiladi (ushlab turiladi); sotilsa xaridorga o'tadi, bekor qilinsa qaytadi
+      const dn = Math.floor(Number(b.diamonds)), st = Math.floor(Number(b.stars));
+      if (!(dn >= 10 && dn <= 1e6) || !(st >= 1 && st <= 5000)) err = 'p2p_bad';
+      else if (diamonds < dn) err = 'diamonds';
+      else if (Number((await Q(c, "SELECT COUNT(*) AS n FROM p2p_offers WHERE seller=$1 AND status='active'", [u.id]))[0].n) >= 5) err = 'p2p_many';
+      else {
+        diamonds -= dn;
+        await c.query('INSERT INTO p2p_offers (seller, seller_name, diamonds, stars, created) VALUES ($1,$2,$3,$4,$5)', [u.id, u.first_name || 'Foydalanuvchi', dn, st, now]);
+      }
+    } else if (action === 'p2p_cancel') {
+      const o = (await Q(c, 'SELECT id, seller, diamonds, status, reserved_by, reserved_until FROM p2p_offers WHERE id=$1 FOR UPDATE', [Number(b.id) || 0]))[0];
+      if (!o || Number(o.seller) !== u.id || o.status !== 'active') err = 'p2p_gone';
+      else if (o.reserved_by && Number(o.reserved_until) > now) err = 'p2p_busy';      // xaridor hozir to'layapti
+      else { await c.query("UPDATE p2p_offers SET status='cancelled' WHERE id=$1", [o.id]); diamonds += o.diamonds; }
+    } else if (action === 'stars_withdraw') {
+      const amt = Math.floor(Number(b.amount)), note = String(b.note || '').trim();
+      if (!(amt >= 50)) err = 'wd_min';
+      else if (amt > starsBal) err = 'wd_funds';
+      else if (!/^@?[A-Za-z][A-Za-z0-9_]{4,31}$/.test(note) && !/^\d{5,15}$/.test(note)) err = 'wd_note';   // faqat Telegram username yoki ID
+      else {
+        starsBal -= amt;
+        const wid = (await Q(c, 'INSERT INTO withdrawals (user_id, amount, note, created) VALUES ($1,$2,$3,$4) RETURNING id', [u.id, amt, note, now]))[0].id;
+        adminWd = { wid, text: `Stars yechish so'rovi #${wid}\nFoydalanuvchi: ${u.first_name || ''} (${u.id})\nMiqdor: ${amt} Stars\nTelegram: ${note}` };
+      }
     } else if (action === 'bid') {
       // Tikilgan coin ushlab turiladi; ustidan oshib ketilsa, avvalgi yetakchiga qaytariladi
       const id = Number(b.id) || 0, amt = Math.floor(Number(b.amount));
       const au = (await Q(c, 'SELECT id, title, status FROM auctions WHERE id=$1 FOR UPDATE', [id]))[0];
-      if (!au || au.status !== 'active') err = 'auction_gone';
+      if (!au || au.status !== 'active' || await isExpired(c, id, now)) err = 'auction_gone';
       else {
         const top = (await Q(c, 'SELECT user_id, amount FROM bids WHERE auction_id=$1 ORDER BY amount DESC LIMIT 1', [id]))[0];
         const topAmt = top ? Number(top.amount) : 0, mine = Boolean(top) && Number(top.user_id) === u.id;
@@ -274,7 +328,8 @@ app.post('/api/act', async (req, res) => {
       const buf = m ? Buffer.from(m[2], 'base64') : null;
       if (title.length < 2 || title.length > 80 || descr.length > 600) err = 'bad_auction';
       else if (b.image && (!buf || buf.length > 600 * 1024)) err = 'bad_image';
-      else await c.query('INSERT INTO auctions (title, descr, image, mime, created) VALUES ($1,$2,$3,$4,$5)', [title, descr, buf, m ? m[1] : null, now]);
+      else if (!(Number(b.hours) >= 1 && Number(b.hours) <= 720)) err = 'bad_hours';   // auksion necha soat turishi
+      else await c.query('INSERT INTO auctions (title, descr, image, mime, created, ends_at) VALUES ($1,$2,$3,$4,$5,$6)', [title, descr, buf, m ? m[1] : null, now, now + Math.round(Number(b.hours) * 3600000)]);
     } else if ((action === 'admin_auction_end' || action === 'admin_auction_cancel') && isAdmin) {
       const id = Number(b.id) || 0;
       const au = (await Q(c, 'SELECT id, title, status FROM auctions WHERE id=$1 FOR UPDATE', [id]))[0];
@@ -328,13 +383,13 @@ app.post('/api/act', async (req, res) => {
     }
 
     await c.query(
-      `UPDATE users SET coins=$1, diamonds=$2, skins=$3, skin=$4, taps=$5, tapday=$6, bonus_at=$7, streak=$8, tasks=$9, code=$10, code_locked=$11, updated=$12 WHERE id=$13`,
-      [coins, diamonds, JSON.stringify(skins), skin, taps, day, bonusAt, streak, JSON.stringify(tasks), myCode, codeLocked, now, u.id]);
+      `UPDATE users SET coins=$1, diamonds=$2, skins=$3, skin=$4, taps=$5, tapday=$6, bonus_at=$7, streak=$8, tasks=$9, code=$10, code_locked=$11, updated=$12, stars_bal=$13 WHERE id=$14`,
+      [coins, diamonds, JSON.stringify(skins), skin, taps, day, bonusAt, streak, JSON.stringify(tasks), myCode, codeLocked, now, starsBal, u.id]);
 
     if (payErr) err = payErr;
     const out = {
       coins, diamonds, skins, skin, taps, bonusAt, streak, refs: row.refs, me: u.id, bot: BOT_USERNAME,
-      tasks, channel: CHANNEL, err, code: myCode, admin: isAdmin, promos: [], invoice, codeLocked,
+      tasks, channel: CHANNEL, err, code: myCode, admin: isAdmin, promos: [], invoice, codeLocked, starsBal,
       ads: await Q(c, `SELECT id, channel, need, done, price FROM ads WHERE active AND owner <> $1
         AND id NOT IN (SELECT ad_id FROM ad_claims WHERE user_id = $1) ORDER BY id DESC LIMIT 30`, [u.id]),
       myAds: await Q(c, 'SELECT id, channel, need, done, price FROM ads WHERE owner = $1 ORDER BY id DESC LIMIT 10', [u.id]),
@@ -346,10 +401,16 @@ app.post('/api/act', async (req, res) => {
       out.rank = (await Q(c, 'SELECT COUNT(*) + 1 AS r FROM users WHERE coins > $1', [coins]))[0].r;
     }
     if (['auctions', 'auction', 'bid', 'admin_auction_add', 'admin_auction_end', 'admin_auction_cancel'].includes(action)) {
-      out.auctions = await Q(c, `SELECT a.id, a.title, a.descr, a.status, a.created, a.winner_name, a.win_amount, (a.image IS NOT NULL) AS has_img,
+      out.auctions = await Q(c, `SELECT a.id, a.title, a.descr, a.status, a.created, a.ends_at, a.winner_name, a.win_amount, (a.image IS NOT NULL) AS has_img,
           COALESCE(t.amount, 0) AS top, t.name AS top_name, (SELECT COUNT(*) FROM bids WHERE auction_id = a.id) AS cnt
         FROM auctions a LEFT JOIN LATERAL (SELECT amount, name FROM bids WHERE auction_id = a.id ORDER BY amount DESC LIMIT 1) t ON TRUE
         ORDER BY (a.status = 'active') DESC, a.id DESC LIMIT 30`);
+      out.srvNow = now;   // mijoz soati bilan farqni hisoblash uchun
+    }
+    if (['p2p', 'p2p_create', 'p2p_cancel', 'p2p_buy', 'stars_withdraw'].includes(action)) {
+      out.offers = await Q(c, `SELECT id, seller_name, diamonds, stars, (seller = $1) AS mine FROM p2p_offers WHERE status='active'
+        ORDER BY (seller = $1) DESC, (stars::float / diamonds) ASC, id DESC LIMIT 50`, [u.id]);
+      out.myOffers = await Q(c, 'SELECT id, diamonds, stars, status FROM p2p_offers WHERE seller = $1 ORDER BY id DESC LIMIT 20', [u.id]);
     }
     if (action === 'auction' || action === 'bid') {
       out.aid = Number(b.id) || 0;
@@ -359,6 +420,11 @@ app.post('/api/act', async (req, res) => {
     res.json(out);
     if (notify) bot.telegram.sendMessage(notify[0], notify[1]).catch(() => {});
     for (const [nid, nt] of notes) bot.telegram.sendMessage(nid, nt).catch(() => {});
+    if (adminWd && ADMIN_ID) {
+      bot.telegram.sendMessage(ADMIN_ID, adminWd.text, Markup.inlineKeyboard([[
+        Markup.button.callback("To'landi", `wok:${adminWd.wid}`), Markup.button.callback('Rad etish', `wno:${adminWd.wid}`)]]))
+        .catch((e) => console.error('admin xabari:', e.message));
+    }
     if (adminMsg && ADMIN_ID) {
       bot.telegram.sendMessage(ADMIN_ID, adminMsg.text, Markup.inlineKeyboard([[
         Markup.button.callback('Bajarildi', `ok:${adminMsg.oid}`), Markup.button.callback('Rad etish', `no:${adminMsg.oid}`)]]))
@@ -394,10 +460,68 @@ bot.command('stats', async (ctx) => {
   const r = (await pool.query('SELECT COUNT(*) AS n, COALESCE(SUM(coins),0) AS c, COALESCE(SUM(refs),0) AS f FROM users')).rows[0];
   ctx.reply(`Foydalanuvchilar: ${r.n}\nJami coin: ${r.c}\nReferallar: ${r.f}`);
 });
+// Muddati tugagan auksionlar avtomatik yakunlanadi: g'olib eng yuqori tikkan, unga va adminga xabar boradi
+async function sweepAuctions() {
+  const c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    const due = await Q(c, "SELECT id, title FROM auctions WHERE status='active' AND ends_at IS NOT NULL AND ends_at <= $1 FOR UPDATE SKIP LOCKED", [Date.now()]);
+    const msgs = [];
+    for (const au of due) {
+      const top = (await Q(c, 'SELECT user_id, name, amount FROM bids WHERE auction_id=$1 ORDER BY amount DESC LIMIT 1', [au.id]))[0];
+      await c.query("UPDATE auctions SET status='ended', winner_name=$2, win_amount=$3 WHERE id=$1", [au.id, top ? top.name : null, top ? top.amount : null]);
+      if (top) msgs.push([top.user_id, `Tabriklaymiz! Siz "${au.title}" auksionida g'olib bo'ldingiz (${top.amount} coin). Admin siz bilan bog'lanadi.`]);
+      if (ADMIN_ID) msgs.push([ADMIN_ID, `Auksion yakunlandi: "${au.title}". ${top ? `G'olib: ${top.name} (${top.amount} coin)` : 'Hech kim tikmadi'}.`]);
+    }
+    await c.query('COMMIT');
+    for (const [id, t] of msgs) bot.telegram.sendMessage(id, t).catch(() => {});
+  } catch (e) {
+    await c.query('ROLLBACK').catch(() => {});
+    console.error('auksion tekshiruvi xatosi:', e.message);
+  } finally { c.release(); }
+}
+
+// P2P bozor: to'lov tasdiqlangach olmos xaridorga o'tadi, Stars sotuvchining Stars hamyoniga yoziladi
+async function handleP2P(ctx, p) {
+  const [, oid] = String(p.invoice_payload).split(':'), id = Number(oid), buyer = ctx.from.id, c = await pool.connect();
+  try {
+    await c.query('BEGIN');
+    const ins = await c.query('INSERT INTO payments (charge_id, user_id, kind, stars, created) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING 1',
+      [p.telegram_payment_charge_id, buyer, 'p2p', p.total_amount, Date.now()]);
+    if (!ins.rowCount) { await c.query('ROLLBACK'); return; }
+    const o = (await c.query("UPDATE p2p_offers SET status='sold', buyer=$2, sold_at=$3 WHERE id=$1 AND status='active' AND reserved_by=$2 RETURNING seller, diamonds, stars",
+      [id, buyer, Date.now()])).rows[0];
+    if (!o) {            // kutilmagan holat: Stars qaytariladi
+      await c.query('ROLLBACK');
+      await bot.telegram.refundStarPayment(buyer, p.telegram_payment_charge_id).catch(() => {});
+      return ctx.reply('Sotuv amalga oshmadi, Stars qaytarildi.');
+    }
+    const net = Math.floor(o.stars * (100 - P2P_FEE) / 100);
+    await c.query('UPDATE users SET diamonds = diamonds + $1 WHERE id=$2', [o.diamonds, buyer]);
+    await c.query('UPDATE users SET stars_bal = stars_bal + $1 WHERE id=$2', [net, o.seller]);
+    await c.query('COMMIT');
+    ctx.reply(`To'lov qabul qilindi: +${o.diamonds} olmos.`);
+    bot.telegram.sendMessage(o.seller, `Olmosingiz sotildi: ${o.diamonds} olmos. Stars hamyoningizga +${net} Stars yozildi.`).catch(() => {});
+  } catch (e) {
+    await c.query('ROLLBACK').catch(() => {});
+    console.error('p2p xatosi:', e.message);
+  } finally { c.release(); }
+}
+
 // Telegram Stars to'lovi
-bot.on('pre_checkout_query', (ctx) => ctx.answerPreCheckoutQuery(true).catch(() => {}));
+bot.on('pre_checkout_query', async (ctx) => {
+  const q = ctx.preCheckoutQuery, pl = String(q.invoice_payload);
+  if (!pl.startsWith('p2p:')) return ctx.answerPreCheckoutQuery(true).catch(() => {});
+  try {   // bir vaqtda ikki kishi bitta olmosni sotib olmasligi uchun taklif 2 daqiqaga band qilinadi
+    const now = Date.now();
+    const r = await pool.query("UPDATE p2p_offers SET reserved_by=$2, reserved_until=$3 WHERE id=$1 AND status='active' AND seller <> $2 AND (reserved_by IS NULL OR reserved_until < $4 OR reserved_by=$2) RETURNING id",
+      [Number(pl.split(':')[1]), q.from.id, now + 120000, now]);
+    return r.rowCount ? ctx.answerPreCheckoutQuery(true) : ctx.answerPreCheckoutQuery(false, "Bu taklif endi mavjud emas yoki boshqa foydalanuvchi to'layapti.");
+  } catch (e) { return ctx.answerPreCheckoutQuery(false, "Xatolik, qayta urinib ko'ring.").catch(() => {}); }
+});
 bot.on('successful_payment', async (ctx) => {
   const p = ctx.message.successful_payment, kind = String(p.invoice_payload).split(':')[0] === 'diamond' ? 'diamond' : 'coin';
+  if (String(p.invoice_payload).startsWith('p2p:')) return handleP2P(ctx, p);
   try {
     // bir to'lov ikki marta hisoblanmasligi uchun charge_id yagona
     const ins = await pool.query('INSERT INTO payments (charge_id, user_id, kind, stars, created) VALUES ($1,$2,$3,$4,$5) ON CONFLICT DO NOTHING RETURNING 1',
@@ -421,6 +545,19 @@ bot.action(/^(ok|no):(\d+)$/, async (ctx) => {
   await ctx.editMessageText(`${ctx.callbackQuery.message.text}\n\n${kind === 'ok' ? 'Bajarildi' : 'Rad etildi, olmos qaytarildi'}`).catch(() => {});
   ctx.answerCbQuery('Tayyor');
 });
+// Admin Stars yechish so'rovini "To'landi" yoki "Rad etish" (hamyonga qaytariladi) deb belgilaydi
+bot.action(/^(wok|wno):(\d+)$/, async (ctx) => {
+  if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return ctx.answerCbQuery("Ruxsat yo'q");
+  const [, kind, id] = ctx.match;
+  const w = (await pool.query('SELECT * FROM withdrawals WHERE id=$1', [id])).rows[0];
+  if (!w) return ctx.answerCbQuery('Topilmadi');
+  const r = await pool.query("UPDATE withdrawals SET status=$1 WHERE id=$2 AND status='new' RETURNING 1", [kind === 'wok' ? 'paid' : 'rejected', id]);
+  if (!r.rowCount) return ctx.answerCbQuery("Allaqachon ko'rilgan");
+  if (kind === 'wno') await pool.query('UPDATE users SET stars_bal = stars_bal + $1 WHERE id=$2', [w.amount, w.user_id]);
+  bot.telegram.sendMessage(w.user_id, kind === 'wok' ? `Stars yechish so'rovi #${id} bajarildi (${w.amount} Stars).` : `So'rov #${id} rad etildi, ${w.amount} Stars hamyoningizga qaytarildi.`).catch(() => {});
+  await ctx.editMessageText(`${ctx.callbackQuery.message.text}\n\n${kind === 'wok' ? "To'landi" : 'Rad etildi, Stars qaytarildi'}`).catch(() => {});
+  ctx.answerCbQuery('Tayyor');
+});
 bot.catch((e) => console.error('Bot xatosi:', e.message));
 
 // Render'da webhook (deploy paytida to'qnashmaydi), lokalda polling
@@ -433,6 +570,7 @@ if (process.env.RENDER || process.env.USE_WEBHOOK === 'true') {
   process.once('SIGINT', () => bot.stop('SIGINT'));
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
 }
+setInterval(sweepAuctions, 60000);   // har daqiqada muddati tugagan auksionlarni yakunlaydi
 // Render bepul rejasi 15 daqiqa harakatsizlikdan keyin uxlaydi: o'z-o'ziga ping yuborib uyg'oq tutamiz
 if (process.env.RENDER_EXTERNAL_URL && process.env.KEEP_ALIVE !== 'false') {
   setInterval(() => fetch(process.env.RENDER_EXTERNAL_URL + '/healthz').catch(() => {}), 10 * 60 * 1000);
