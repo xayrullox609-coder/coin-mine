@@ -32,7 +32,7 @@ const SERVICES = {   // p = bitta paket narxi (olmos), q = paket hajmi; buyurtma
   ig_views: { p: 10, q: 1000, label: "Instagram ko'rishlar" }, ig_subs: { p: 20, q: 50, label: 'Instagram obunachi' }, ig_likes: { p: 10, q: 50, label: 'Instagram like' },
   tg_views: { p: 5, q: 1000, label: "Telegram ko'rishlar" }, tg_react: { p: 1, q: 10, label: 'Telegram reaksiya' }, tg_subs: { p: 10, q: 50, label: 'Telegram obunachi' },
   yt_subs: { p: 100, q: 1000, label: 'YouTube obunachi' }, yt_likes: { p: 1, q: 10, label: 'YouTube like' }, yt_views: { p: 10, q: 1000, label: "YouTube ko'rishlar" },
-  pubg_uc: { p: 500, q: 60, unit: 'UC', label: 'PUBG Mobile' },
+  pubg_uc: { p: 500, q: 60, unit: 'UC', label: 'PUBG Mobile', soon: true },   // hozircha Coming soon
 };
 
 pg.types.setTypeParser(20, (v) => parseInt(v, 10)); // BIGINT -> number
@@ -359,6 +359,7 @@ app.post('/api/act', async (req, res) => {
       const sv = SERVICES[b.svc], qty = Math.floor(Number(b.qty)), tgt = String(b.target || '').trim();
       const cnt = sv && qty > 0 && qty % sv.q === 0 ? qty / sv.q : 0;   // miqdor paket hajmining ko'paytmasi bo'lishi shart
       if (!sv) err = 'gone';
+      else if (sv.soon) err = 'soon';
       else if (tgt.length < 3 || tgt.length > 200) err = 'bad_target';
       else if (!(cnt >= 1 && cnt <= 100)) err = 'bad_count';
       else if (diamonds < sv.p * cnt) err = 'diamonds';
