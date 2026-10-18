@@ -185,6 +185,7 @@
   .seg button{flex:1;padding:10px;border-radius:10px;background:none;color:var(--muted);font-weight:800;letter-spacing:.5px}
   .seg button.on{background:#2f7bff;color:#fff}
   .bico{flex:none;display:block;border-radius:12px}
+  .soon{margin-left:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:#fbbf24;letter-spacing:.4px;white-space:nowrap}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -416,10 +417,10 @@ const SV=[
  {id:'ig',n:'Instagram',ic:'camera',c:['#f472b6','#c026d3'],items:[{id:'ig_views',n:"Ko'rishlar",q:1000,p:10},{id:'ig_subs',n:'Obunachi',q:50,p:20},{id:'ig_likes',n:'Like',q:50,p:10}]},
  {id:'tg',n:'Telegram',ic:'send',c:['#38bdf8','#2563eb'],items:[{id:'tg_views',n:"Ko'rishlar",q:1000,p:5},{id:'tg_react',n:'Reaksiya',q:10,p:1},{id:'tg_subs',n:'Obunachi',q:50,p:10}]},
  {id:'yt',n:'YouTube',ic:'play',c:['#f87171','#dc2626'],items:[{id:'yt_subs',n:'Obunachi',q:1000,p:100},{id:'yt_likes',n:'Like',q:10,p:1},{id:'yt_views',n:"Ko'rishlar",q:1000,p:10}]},
- {id:'pubg',n:'PUBG Mobile',ic:'gamepad',c:['#fbbf24','#d97706'],target:'PUBG Player ID',items:[{id:'pubg_uc',n:'UC',q:60,p:500,unit:' UC'}]},
+ {id:'pubg',n:'PUBG Mobile',ic:'gamepad',c:['#fbbf24','#d97706'],target:'PUBG Player ID',off:true,items:[{id:'pubg_uc',n:'UC',q:60,p:500,unit:' UC'}]},
  {id:'tt',n:'TikTok',ic:'music',c:['#94a3b8','#475569'],off:true,items:[]}
 ];
-const SVI={};SV.forEach(p=>p.items.forEach(i=>{SVI[i.id]={...i,pn:p.n,pid:p.id}}));
+const SVI={};SV.forEach(p=>p.items.forEach(i=>{SVI[i.id]={...i,pn:p.n,pid:p.id,soon:!!p.off}}));
 let _pi=0;
 function platIcon(id,sz=48){      // har bir platformaning o'z belgisi (SVG)
   const g='pi'+(++_pi),w=(defs,body)=>`<svg class="bico" width="${sz}" height="${sz}" viewBox="0 0 48 48" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
@@ -477,7 +478,7 @@ async function api(action,i,x){
   const auList=r.auc.map(a=>{const t=a.bids.length?a.bids[a.bids.length-1]:null;return{id:a.id,title:a.title,descr:a.descr,status:a.status,created:a.created,has_img:false,top:t?t.amount:0,top_name:t?t.name:null,cnt:a.bids.length,winner_name:a.winner||null,win_amount:a.win_amount||null,ends_at:a.ends_at||null};});
   r.orders=r.orders||[];
   if(action==='order'){const it=SVI[x.svc],qty=Math.floor(+x.qty),cnt=(it&&qty>0&&qty%it.q===0)?qty/it.q:0,tgt=String(x.target||'').trim();
-    if(!it)err='gone';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
+    if(!it)err='gone';else if(it.soon)err='soon';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
     else{r.diamonds-=it.p*cnt;r.orders.unshift({id:Date.now(),svc:x.svc,count:cnt,total:it.p*cnt,status:'new'});}}
   if(action==='buy_stars')err='demo_pay';
   if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
@@ -703,7 +704,7 @@ const TASKS=[
   {id:'friends3',e:'users',n:"3 ta do'st taklif qiling",r:3000},
   {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
 ];
-const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",soon:"Bu xizmat tez orada qo'shiladi (Coming soon)",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
 function taskBtns(d,done,goFn,checkFn){
   const w=document.createElement('div');w.className='acts';
   if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
@@ -856,7 +857,7 @@ function renderBoost(){
   SV.forEach(p=>{
     const d=document.createElement('div');d.className='card col';
     if(p.off)d.style.opacity='.55';
-    d.innerHTML=`<div class="phead">${platIcon(p.id,48)}<div class="info"><div class="nm">${p.n}</div><div class="sub">${p.off?'Xizmat mavjud emas':p.items.length+' ta xizmat'}</div></div>${p.off?'':'<b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>'}</div>`;
+    d.innerHTML=`<div class="phead">${platIcon(p.id,48)}<div class="info"><div class="nm">${p.n}</div><div class="sub">${p.off?'Coming soon':p.items.length+' ta xizmat'}</div></div>${p.off?'':'<b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>'}</div>`;
     if(!p.off)d.querySelector('.phead').onclick=()=>{openPlat=p;openModal('plat');};
     $('svlist').appendChild(d);
   });
