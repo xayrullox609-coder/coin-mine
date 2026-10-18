@@ -2,23 +2,19 @@ services:
   - type: web
     name: coin-mine
     runtime: node
-    plan: starter            # doimiy disk faqat pulli rejada mavjud
+    plan: free
     buildCommand: npm install
     startCommand: npm start
     healthCheckPath: /healthz
     autoDeploy: true
-    disk:
-      name: data
-      mountPath: /var/data
-      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: 20
-      - key: DATA_DIR
-        value: /var/data
       - key: BOT_TOKEN
         sync: false
       - key: BOT_USERNAME
+        sync: false
+      - key: DATABASE_URL     # Neon (bepul Postgres) manzili
         sync: false
       - key: CHANNEL
         sync: false
