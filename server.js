@@ -19,7 +19,6 @@ const SKINS = [
   { cost: 1299, mult: 4, cap: 1000 }, { cost: 1599, mult: 4, cap: 1000 }, { cost: 1999, mult: 5, cap: 1200 },
 ];
 const DAY = 864e5, BONUS = 500, REF_BONUS = 1000;
-const EXCH = 10;             // 1 olmos = 10 coin
 const REFILL = 20;           // energiyani to'ldirish = 20 olmos
 const AD_COST = 2;           // reklama beruvchi: 1 obunachi = 2 olmos
 const P2P_FEE = Math.min(50, Math.max(0, Number(process.env.P2P_FEE || 0)));   // P2P bozor komissiyasi (foiz), standart 0
@@ -214,11 +213,6 @@ app.post('/api/act', async (req, res) => {
     } else if (action === 'select') {
       const k = Number(b.id);
       if (skins.includes(k)) skin = k; else err = 'locked';
-    } else if (action === 'exchange') {
-      const nd = Math.floor(Number(b.n));
-      if (!(nd >= 1 && nd <= 100000)) err = 'bad_amount';
-      else if (coins < nd * EXCH) err = 'funds';
-      else { coins -= nd * EXCH; diamonds += nd; }
     } else if (action === 'refill') {
       if (diamonds < REFILL) err = 'diamonds'; else { diamonds -= REFILL; taps = 0; }
     } else if (action === 'bonus' && now - bonusAt >= DAY) {
