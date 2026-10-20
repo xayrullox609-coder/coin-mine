@@ -217,8 +217,6 @@
   <h3><i data-ic="bolt"></i>Boost xizmatlari</h3>
   <div class="note" style="margin-top:-4px">Olmos bilan ijtimoiy tarmoq xizmatlariga buyurtma bering</div>
   <div id="svlist"></div>
-  <h3 id="ordh" hidden><i data-ic="chart"></i>Mening buyurtmalarim</h3>
-  <div id="ordlist"></div>
 </section>
 
 <section id="v-au" hidden>
@@ -254,6 +252,7 @@
   <button class="menu" data-p="top"><div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i data-ic="trophy" data-s="20"></i></div>Reyting<b>›</b></button>
   <button class="menu" data-p="fr"><div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)"><i data-ic="users" data-s="20"></i></div>Do'stlar<b>›</b></button>
   <button class="menu" data-p="p2p"><div class="ico" style="background:linear-gradient(135deg,#22c55e,#0ea5e9)"><i data-ic="swap" data-s="20"></i></div>P2P bozori<b>›</b></button>
+  <button class="menu" data-p="orders"><div class="ico" style="background:linear-gradient(135deg,#64748b,#334155)"><i data-ic="chart" data-s="20"></i></div>Mening buyurtmalarim<b>›</b></button>
 
   <div id="p-buy" class="card col" hidden>
     <div class="nm">Coin va olmos sotib olish</div>
@@ -265,8 +264,10 @@
   </div>
   <div id="p-top" class="card col" hidden>
     <div class="nm">Eng yaxshi 10 talik</div>
+    <div class="seg" id="topseg"><button data-k="coin" class="on">TANGA</button><button data-k="diamond">OLMOS</button><button data-k="ref">REFERAL</button></div>
     <div id="toplist"></div>
     <div class="note" id="myrank"></div>
+    <div class="note" id="topnote"></div>
   </div>
   <div id="p-fr" class="card col" hidden>
     <div class="nm">Do'stlarni taklif qiling</div>
@@ -289,6 +290,10 @@
     <div id="p2plist"></div>
     <div style="height:84px"></div>
     <button class="fab" id="p2pfab" aria-label="Olmos sotuvga qo'yish"><i data-ic="plus" data-s="30"></i></button>
+  </div>
+  <div id="p-orders" class="card col" hidden>
+    <div class="sub">Boost xizmatlariga bergan buyurtmalaringiz va ularning holati.</div>
+    <div id="ordlist"></div>
   </div>
   <div id="p-code" class="card col" hidden>
     <div class="nm">Mening kodim</div>
@@ -518,8 +523,13 @@ async function api(action,i,x){
   if(action==='auction'||action==='bid'){const a=r.auc.find(z=>z.id===i);out.aid=i;out.bids=a?[...a.bids].reverse().map(b=>({name:b.name,amount:b.amount,mine:!!b.mine})):[];}
   if(action==='load')out.offline=offline;
   if(action==='top'){
-    const all=[...BOTS,['Siz',r.coins]].sort((a,b)=>b[1]-a[1]);
-    out.top=all.slice(0,10).map(x=>({name:x[0],coins:x[1]}));out.rank=all.findIndex(x=>x[0]==='Siz')+1;
+    const kd=x&&x.kind==='diamond'?'diamond':x&&x.kind==='ref'?'ref':'coin';
+    const lists={coin:BOTS,diamond:[['Aziz',4200],['Madina',3100],['Jasur',2650],['Dilnoza',1900],['Sardor',1200],['Malika',700],['Bekzod',350]],ref:[['Aziz',14],['Madina',11],['Jasur',9],['Dilnoza',7],['Sardor',5],['Malika',3],['Bekzod',2]]};
+    const mv=kd==='coin'?r.coins:kd==='diamond'?r.diamonds:0;
+    const all=[...lists[kd],...(kd==='ref'?[]:[['Siz',mv]])].sort((a,b)=>b[1]-a[1]);
+    out.top=all.slice(0,10).map(q=>({name:q[0],v:q[1],mine:q[0]==='Siz'}));out.topKind=kd;out.myVal=mv;
+    out.rank=kd==='ref'?lists.ref.length+1:all.findIndex(q=>q[0]==='Siz')+1;
+    if(kd==='ref')out.refEnds=Date.now()+17*864e5;
   }
   return out;
 }
@@ -661,15 +671,19 @@ async function act(action,i,x){
   if(!$('v-au').hidden)renderAuc();
   if(movedEl&&movedEl.id==='p-admin'){renderAdminAuc();renderAdminPromos();}
   if(fullEl&&fullEl.id==='p-p2p')renderP2P();
+  if(movedEl&&movedEl.id==='p-orders')renderOrders();
   if(modalMode)drawModal();
   render();
 }
 
 function showTop(d){
-  $('toplist').innerHTML=d.top.map((u,i)=>`<div class="row ${u.name==='Siz'?'me':''}"><span><span class="medal${i<3?' m'+(i+1):''}">${i+1}</span> ${u.name.replace(/</g,'&lt;')}</span><b>${coin(15)}${fmt(u.coins)}</b></div>`).join('');
-  $('myrank').textContent='Sizning o\'rningiz: #'+d.rank;
+  const k=d.topKind||topKind,ico=k==='coin'?coin(15):k==='diamond'?dia(15):ic('users',15),unit=k==='ref'?' ta':'';
+  const rows=(d.top||[]).map((u,i)=>`<div class="row ${u.mine||u.name==='Siz'?'me':''}"><span><span class="medal${i<3?' m'+(i+1):''}">${i+1}</span> ${esc(u.name||'')}</span><b style="display:flex;align-items:center;gap:4px">${ico}${fmt(u.v)}${unit}</b></div>`);
+  $('toplist').innerHTML=rows.length?rows.join(''):'<div class="sub" style="padding:10px 0">Hali hech kim yo\'q</div>';
+  $('myrank').textContent=k==='ref'?(d.myVal>0?`Sizning o'rningiz: #${d.rank} (${d.myVal} ta taklif)`:"Shu davrda hali do'st taklif qilmagansiz"):'Sizning o\'rningiz: #'+d.rank;
+  $('topnote').textContent=k==='ref'&&d.refEnds?`Referal reytingi har 30 kunda 0 ga qaytadi. Yangilanishgacha: ${leftStr(d.refEnds-nowS())}`:'';
 }
-
+$('topseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;topKind=b.dataset.k;[...$('topseg').children].forEach(x=>x.classList.toggle('on',x===b));act('top',null,{kind:topKind});};
 function link(){return `https://t.me/${String(s.bot||'').replace(/^@/,'')}?start=ref_${s.me}`}
 function showFriends(){
   if(!s)return;
@@ -766,7 +780,7 @@ function renderProfile(){
   else $('menu-admin').hidden=false;
   renderAdminPromos();
 }
-const PT={p2p:'P2P bozori',admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
+const PT={orders:"Mening buyurtmalarim",p2p:'P2P bozori',admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
 let fullEl=null;
 function openFull(key){                // P2P: to'liq ekran
   const el=$('p-'+key);if(!el)return;
@@ -790,10 +804,11 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
   const k=b.dataset.p;
   if(k==='admin'&&!(s&&s.admin))return;
   if(k==='p2p')openFull(k);else openPanel(k);
-  if(k==='top')act('top');
+  if(k==='top')act('top',null,{kind:topKind});
   if(k==='fr')showFriends();
   if(k==='buy')starUpdate();
   if(k==='admin')act('auctions');
+  if(k==='orders'){renderOrders();act('boost');}
   if(k==='p2p')act('p2p');
 });
 $('codesave').onclick=()=>{
@@ -844,7 +859,7 @@ $('resetbtn').onclick=()=>{
   act('admin_reset',null,{confirm:true});
 };
 
-let auView='active',p2pKind='diamond',aucSel=0,aImg='',openP='',ordSel=null,openPlat=null,movedEl=null;
+let topKind='coin',auView='active',p2pKind='diamond',aucSel=0,aImg='',openP='',ordSel=null,openPlat=null,movedEl=null;
 const STATUS={new:'Kutilmoqda',done:'Bajarildi',rejected:"Rad etildi, olmos qaytarildi"};
 function renderBoost(){
   if(!s)return;
@@ -856,17 +871,24 @@ function renderBoost(){
     if(!p.off)d.querySelector('.phead').onclick=()=>{openPlat=p;openModal('plat');};
     $('svlist').appendChild(d);
   });
-  $('ordh').hidden=!s.orders.length;$('ordlist').innerHTML='';
-  s.orders.forEach(o=>{
-    const it=SVI[o.svc],d=document.createElement('div');d.className='card';
-    d.innerHTML=`${it?platIcon(it.pid,44):`<div class="ico">${ic('chart',22)}</div>`}<div class="info"><div class="nm"></div><div class="sub">${o.total} ${dia(13)} · ${STATUS[o.status]||o.status}</div></div>`;
-    d.querySelector('.nm').textContent=(it?it.pn+' · '+it.n+' · '+fmt(o.count*it.q)+(it.unit||' ta'):o.svc);
-    $('ordlist').appendChild(d);
-  });
 }
 function platHTML(){
   const p=openPlat;
   return head(p.n,'Xizmatni tanlang')+'<div class="sgrid" style="grid-template-columns:1fr">'+p.items.map((it,i)=>`<div class="sk" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left"><div><div class="skn" style="margin:0">${it.n}</div><div class="sks" style="margin:2px 0 0">${fmt(it.q)}${it.unit||' ta'}</div></div><button class="sb buyb" style="width:auto;padding:10px 14px" data-a="svc" data-k="${i}">${dia(14)} ${it.p}</button></div>`).join('')+'</div>';
+}
+function fmtDate(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return p(d.getDate())+'.'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function renderOrders(){
+  const L=$('ordlist');if(!L||!s)return;
+  L.innerHTML='';
+  const list=s.orders||[];
+  if(!list.length){L.innerHTML='<div class="sub" style="text-align:center;padding:16px 0">Hozircha buyurtma yo\'q</div>';return;}
+  list.forEach(o=>{
+    const it=SVI[o.svc],r=document.createElement('div');r.className='row';
+    const col={new:'#f59e0b',done:'#22c55e',rejected:'#ef4444'}[o.status]||'#9a9ab2';
+    r.innerHTML=`<span style="display:flex;align-items:center;gap:10px;min-width:0">${it?platIcon(it.pid,40):''}<span><b class="nmx"></b><br><small style="color:var(--muted)">${fmtDate(o.created||o.id)}</small></span></span><span style="text-align:right"><b style="display:flex;align-items:center;gap:4px;justify-content:flex-end">${dia(14)}${fmt(o.total)}</b><small style="color:${col};font-weight:700">${STATUS[o.status]||o.status}</small></span>`;
+    r.querySelector('.nmx').textContent=it?it.pn+' · '+it.n+' · '+fmt(o.count*it.q)+(it.unit||' ta'):o.svc;
+    L.appendChild(r);
+  });
 }
 function orderHTML(){
   const {p,it}=ordSel,pt=(($('ordt')||{}).value||'').replace(/"/g,'&quot;'),pc=(($('ordc')||{}).value||String(it.q));
