@@ -25,6 +25,9 @@ const P2P_FEE = Math.min(50, Math.max(0, Number(process.env.P2P_FEE || 0)));   /
 const AD_REWARD = 1;         // obunachi oladi: 1 olmos
 const TASKS = [{ id: 'channel', reward: 2000 }, { id: 'friends3', reward: 3000 }, { id: 'level10', reward: 1500 }];
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+// Referal reytingi har 30 kunda 0 ga qaytadi (hamma uchun bir vaqtda): davr boshlanishi shu sanadan hisoblanadi
+const REF_CYCLE = 30 * 864e5, REF_ANCHOR = Date.UTC(2025, 0, 1);
+const refCycle = (now) => { const start = REF_ANCHOR + Math.floor((now - REF_ANCHOR) / REF_CYCLE) * REF_CYCLE; return { start, end: start + REF_CYCLE }; };
 const STARS_COIN = 1000, STARS_DIA = 20;   // 1 Stars = 1000 coin yoki 20 olmos
 // Boost xizmatlari (public/index.html dagi SV bilan bir xil): p = bitta paket narxi (olmos)
 const SERVICES = {   // p = bitta paket narxi (olmos), q = paket hajmi; buyurtma miqdori q ning ko'paytmasi bo'ladi
@@ -61,6 +64,8 @@ CREATE TABLE IF NOT EXISTS auctions (id SERIAL PRIMARY KEY, title TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active', winner_name TEXT, win_amount BIGINT, created BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS bids (id SERIAL PRIMARY KEY, auction_id INT NOT NULL, user_id BIGINT NOT NULL, name TEXT, amount BIGINT NOT NULL, created BIGINT NOT NULL);
 CREATE INDEX IF NOT EXISTS bids_auction ON bids (auction_id, amount DESC);
+CREATE TABLE IF NOT EXISTS referrals (referrer BIGINT NOT NULL, referred BIGINT PRIMARY KEY, created BIGINT NOT NULL);
+CREATE INDEX IF NOT EXISTS referrals_created ON referrals (created);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stars_bal BIGINT NOT NULL DEFAULT 0;
 ALTER TABLE auctions ADD COLUMN IF NOT EXISTS ends_at BIGINT;
 ALTER TABLE p2p_offers ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'diamond';
@@ -408,12 +413,26 @@ app.post('/api/act', async (req, res) => {
       ads: await Q(c, `SELECT id, channel, need, done, price FROM ads WHERE active AND owner <> $1
         AND id NOT IN (SELECT ad_id FROM ad_claims WHERE user_id = $1) ORDER BY id DESC LIMIT 30`, [u.id]),
       myAds: await Q(c, 'SELECT id, channel, need, done, price FROM ads WHERE owner = $1 ORDER BY id DESC LIMIT 10', [u.id]),
-      orders: await Q(c, 'SELECT id, svc, count, total, status FROM orders WHERE user_id = $1 ORDER BY id DESC LIMIT 10', [u.id]),
+      orders: await Q(c, 'SELECT id, svc, count, total, status, created FROM orders WHERE user_id = $1 ORDER BY id DESC LIMIT 30', [u.id]),
     };
     if (isAdmin) out.promos = await Q(c, 'SELECT code, reward, max, used FROM promos ORDER BY created DESC LIMIT 30');
     if (action === 'top') {
-      out.top = await Q(c, 'SELECT name, coins FROM users ORDER BY coins DESC LIMIT 10');
-      out.rank = (await Q(c, 'SELECT COUNT(*) + 1 AS r FROM users WHERE coins > $1', [coins]))[0].r;
+      // Reyting: tanga | olmos (doimiy) | referal (har 30 kunda 0 ga qaytadi)
+      const kind = ['diamond', 'ref'].includes(b.kind) ? b.kind : 'coin';
+      out.topKind = kind;
+      if (kind === 'ref') {
+        const cyc = refCycle(now);
+        out.top = await Q(c, `SELECT u.name, COUNT(*) AS v, (u.id = $2) AS mine FROM referrals r JOIN users u ON u.id = r.referrer
+          WHERE r.created >= $1 GROUP BY u.id, u.name ORDER BY v DESC, MIN(r.created) ASC LIMIT 10`, [cyc.start, u.id]);
+        out.myVal = Number((await Q(c, 'SELECT COUNT(*) AS n FROM referrals WHERE referrer=$1 AND created >= $2', [u.id, cyc.start]))[0].n);
+        out.rank = (await Q(c, 'SELECT COUNT(*) + 1 AS r FROM (SELECT COUNT(*) AS n FROM referrals WHERE created >= $1 GROUP BY referrer) t WHERE n > $2', [cyc.start, out.myVal]))[0].r;
+        out.refEnds = cyc.end;
+      } else {
+        const col = kind === 'diamond' ? 'diamonds' : 'coins', mine = kind === 'diamond' ? diamonds : coins;   // ustun nomi oq ro'yxatdan
+        out.top = await Q(c, `SELECT name, ${col} AS v, (id = $1) AS mine FROM users ORDER BY ${col} DESC LIMIT 10`, [u.id]);
+        out.rank = (await Q(c, `SELECT COUNT(*) + 1 AS r FROM users WHERE ${col} > $1`, [mine]))[0].r;
+        out.myVal = mine;
+      }
     }
     if (['auctions', 'auction', 'bid', 'admin_auction_add', 'admin_auction_end', 'admin_auction_cancel'].includes(action)) {
       out.auctions = await Q(c, `SELECT a.id, a.title, a.descr, a.status, a.created, a.ends_at, a.winner_name, a.win_amount, (a.image IS NOT NULL) AS has_img,
@@ -468,6 +487,7 @@ bot.start(async (ctx) => {
       if (!me.rowCount && rf.rowCount) {
         await pool.query('INSERT INTO users (id, name, updated, coins, ref) VALUES ($1,$2,$3,$4,$5)', [id, ctx.from.first_name || '', Date.now(), 100 + REF_BONUS, ref]);
         await pool.query('UPDATE users SET coins = coins + $1, refs = refs + 1 WHERE id=$2', [REF_BONUS, ref]);
+        await pool.query('INSERT INTO referrals (referrer, referred, created) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING', [ref, id, Date.now()]);
       }
     }
   } catch (e) { console.error('referal xatosi:', e.message); }
