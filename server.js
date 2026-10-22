@@ -23,7 +23,6 @@ const REFILL = 20;           // energiyani to'ldirish = 20 olmos
 const AD_COST = 2;           // reklama beruvchi: 1 obunachi = 2 olmos
 const P2P_FEE = Math.min(50, Math.max(0, Number(process.env.P2P_FEE || 0)));   // P2P bozor komissiyasi (foiz), standart 0
 const AD_REWARD = 1;         // obunachi oladi: 1 olmos
-const TASKS = [{ id: 'channel', reward: 2000 }, { id: 'friends3', reward: 3000 }, { id: 'level10', reward: 1500 }];
 const ALPHA = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 // Referal reytingi har 30 kunda 0 ga qaytadi (hamma uchun bir vaqtda): davr boshlanishi shu sanadan hisoblanadi
 const REF_CYCLE = 30 * 864e5, REF_ANCHOR = Date.UTC(2025, 0, 1);
@@ -58,7 +57,7 @@ CREATE TABLE IF NOT EXISTS promo_uses (code TEXT, user_id BIGINT, PRIMARY KEY (c
 CREATE TABLE IF NOT EXISTS orders (id SERIAL PRIMARY KEY, user_id BIGINT NOT NULL, svc TEXT NOT NULL, count INT NOT NULL, target TEXT NOT NULL,
   total INT NOT NULL, status TEXT NOT NULL DEFAULT 'new', created BIGINT NOT NULL);
 CREATE TABLE IF NOT EXISTS payments (charge_id TEXT PRIMARY KEY, user_id BIGINT NOT NULL, kind TEXT NOT NULL, stars INT NOT NULL, created BIGINT NOT NULL);
-CREATE TABLE IF NOT EXISTS codes_used (code TEXT PRIMARY KEY);   -- berilgan yoki tanlangan har bir kod bir marta ishlatiladi
+CREATE TABLE IF NOT EXISTS codes_used (code TEXT PRIMARY KEY);   // berilgan yoki tanlangan har bir kod bir marta ishlatiladi
 ALTER TABLE users ADD COLUMN IF NOT EXISTS code_locked BOOLEAN NOT NULL DEFAULT FALSE;
 CREATE TABLE IF NOT EXISTS auctions (id SERIAL PRIMARY KEY, title TEXT NOT NULL, descr TEXT NOT NULL DEFAULT '', image BYTEA, mime TEXT,
   status TEXT NOT NULL DEFAULT 'active', winner_name TEXT, win_amount BIGINT, created BIGINT NOT NULL);
@@ -66,6 +65,10 @@ CREATE TABLE IF NOT EXISTS bids (id SERIAL PRIMARY KEY, auction_id INT NOT NULL,
 CREATE INDEX IF NOT EXISTS bids_auction ON bids (auction_id, amount DESC);
 CREATE TABLE IF NOT EXISTS referrals (referrer BIGINT NOT NULL, referred BIGINT PRIMARY KEY, created BIGINT NOT NULL);
 CREATE INDEX IF NOT EXISTS referrals_created ON referrals (created);
+CREATE TABLE IF NOT EXISTS admin_tasks (id SERIAL PRIMARY KEY, type TEXT NOT NULL, title TEXT NOT NULL, link TEXT NOT NULL, reward INT NOT NULL,
+  reward_kind TEXT NOT NULL DEFAULT 'coin', wait INT NOT NULL DEFAULT 0, max INT NOT NULL DEFAULT 0, done INT NOT NULL DEFAULT 0,
+  active BOOLEAN NOT NULL DEFAULT TRUE, created BIGINT NOT NULL);
+CREATE TABLE IF NOT EXISTS admin_task_progress (task_id INT NOT NULL, user_id BIGINT NOT NULL, started BIGINT NOT NULL, done BOOLEAN NOT NULL DEFAULT FALSE, PRIMARY KEY (task_id, user_id));
 ALTER TABLE users ADD COLUMN IF NOT EXISTS stars_bal BIGINT NOT NULL DEFAULT 0;
 ALTER TABLE auctions ADD COLUMN IF NOT EXISTS ends_at BIGINT;
 ALTER TABLE p2p_offers ADD COLUMN IF NOT EXISTS kind TEXT NOT NULL DEFAULT 'diamond';
@@ -139,7 +142,14 @@ app.post('/api/act', async (req, res) => {
   // Telegram tekshiruvlari (bot kanalda admin ekani, obuna) tranzaksiyadan oldin
   let member = false, botAdmin = false, adMember = false;
   try {
-    if (action === 'task' && b.id === 'channel' && CHANNEL) member = await isMember(CHANNEL, u.id);
+    if (action === 'task_check') {            // kanal vazifasida obuna Telegram orqali tekshiriladi
+      const t = (await pool.query('SELECT type, link FROM admin_tasks WHERE id=$1 AND active', [Number(b.id) || 0])).rows[0];
+      if (t && t.type === 'channel') member = await isMember(t.link, u.id);
+    }
+    if (action === 'admin_task_add' && b.type === 'channel') {   // bot kanalda admin bo'lishi shart
+      const ch = norm(b.link);
+      if (ch) botAdmin = (await bot.telegram.getChatMember(ch, await botId())).status === 'administrator';
+    }
     if (action === 'ad_add') {
       const ch = norm(b.channel);
       if (ch) botAdmin = (await bot.telegram.getChatMember(ch, await botId())).status === 'administrator';
@@ -201,6 +211,7 @@ app.post('/api/act', async (req, res) => {
     }
     let err = null, notify = null, adminMsg = null;
     const notes = [];
+    let waitLeft = 0;
     let adminWd = null, promoPost = null, promoTouch = null, promoDel = null;
     const winners = [];
     const S = SKINS[skin];
@@ -224,11 +235,41 @@ app.post('/api/act', async (req, res) => {
       streak = now - bonusAt < 2 * DAY ? streak + 1 : 1;
       coins += BONUS * Math.min(streak, 7);
       bonusAt = now;
-    } else if (action === 'task') {
-      const T = TASKS.find((x) => x.id === b.id);
-      const ok = T && !tasks.includes(T.id) &&
-        (T.id === 'channel' ? member : T.id === 'friends3' ? row.refs >= 3 : skins.length >= 3);
-      if (ok) { coins += T.reward; tasks.push(T.id); }
+    } else if (action === 'task_go') {
+      // "O'tish" bosilganda boshlanish vaqti yoziladi (bot, video va sayt vazifalarida kutish vaqti shundan hisoblanadi)
+      const t = (await Q(c, 'SELECT id FROM admin_tasks WHERE id=$1 AND active', [Number(b.id) || 0]))[0];
+      if (!t) err = 'task_gone';
+      else await c.query('INSERT INTO admin_task_progress (task_id, user_id, started) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING', [t.id, u.id, now]);
+    } else if (action === 'task_check') {
+      const t = (await Q(c, 'SELECT * FROM admin_tasks WHERE id=$1 AND active FOR UPDATE', [Number(b.id) || 0]))[0];
+      const pr = t ? (await Q(c, 'SELECT started, done FROM admin_task_progress WHERE task_id=$1 AND user_id=$2', [t.id, u.id]))[0] : null;
+      if (!t || (t.max > 0 && t.done >= t.max)) err = 'task_gone';
+      else if (pr && pr.done) err = 'claimed';
+      else if (t.type === 'channel' && !member) err = 'not_member';
+      else if (t.type !== 'channel' && !pr) err = 'task_first';
+      else if (t.type !== 'channel' && now - Number(pr.started) < t.wait * 1000) {
+        err = 'task_wait'; waitLeft = Math.ceil((t.wait * 1000 - (now - Number(pr.started))) / 1000);
+      } else {
+        if (t.reward_kind === 'diamond') diamonds += t.reward; else coins += t.reward;
+        await c.query('INSERT INTO admin_task_progress (task_id, user_id, started, done) VALUES ($1,$2,$3,TRUE) ON CONFLICT (task_id, user_id) DO UPDATE SET done=TRUE', [t.id, u.id, now]);
+        await c.query('UPDATE admin_tasks SET done = done + 1, active = (max = 0 OR done + 1 < max) WHERE id=$1', [t.id]);
+      }
+    } else if (action === 'admin_task_add' && isAdmin) {
+      const type = ['channel', 'bot', 'video', 'site'].includes(b.type) ? b.type : null;
+      const title = String(b.title || '').trim(), raw = String(b.link || '').trim();
+      const reward = Math.floor(Number(b.reward)), kind = b.kind === 'diamond' ? 'diamond' : 'coin';
+      const wait = type === 'channel' ? 0 : Math.floor(Number(b.wait ?? 10)), mx = (b.max === '' || b.max == null) ? 0 : Math.floor(Number(b.max));
+      let link = null;
+      if (type === 'channel') link = norm(raw);
+      else if (type === 'bot') {
+        const m = raw.match(/^@?([A-Za-z][A-Za-z0-9_]{4,31})$/);
+        link = m ? 'https://t.me/' + m[1] : (/^https:\/\/t\.me\/[A-Za-z0-9_]{5,32}(\?[^\s]*)?$/.test(raw) ? raw : null);
+      } else if (type && /^https?:\/\/[^\s]{4,300}$/.test(raw)) link = raw;
+      if (!type || title.length < 2 || title.length > 80 || !link || !(reward >= 1 && reward <= 1e9) || !(wait >= 0 && wait <= 3600) || !(mx >= 0 && mx <= 1e6)) err = 'bad_task';
+      else if (type === 'channel' && !botAdmin) err = 'not_admin';
+      else await c.query('INSERT INTO admin_tasks (type, title, link, reward, reward_kind, wait, max, created) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)', [type, title, link, reward, kind, wait, mx, now]);
+    } else if (action === 'admin_task_del' && isAdmin) {
+      await c.query('UPDATE admin_tasks SET active=FALSE WHERE id=$1', [Number(b.id) || 0]);
     } else if (action === 'ad_add') {
       const ch = norm(b.channel), need = Math.floor(Number(b.need));
       if (!ch || !(need >= 5 && need <= 10000)) err = 'limits';
@@ -446,6 +487,13 @@ app.post('/api/act', async (req, res) => {
         ORDER BY (seller = $1) DESC, (stars::float / diamonds) ASC, id DESC LIMIT 100`, [u.id]);
       out.myOffers = await Q(c, 'SELECT id, diamonds, stars, status FROM p2p_offers WHERE seller = $1 ORDER BY id DESC LIMIT 20', [u.id]);
     }
+    if (['load', 'tasks', 'task_go', 'task_check', 'admin_task_add', 'admin_task_del'].includes(action)) {
+      out.atasks = await Q(c, `SELECT t.id, t.type, t.title, t.link, t.reward, t.reward_kind, t.wait, t.max, t.done, p.started
+        FROM admin_tasks t LEFT JOIN admin_task_progress p ON p.task_id = t.id AND p.user_id = $1
+        WHERE t.active AND COALESCE(p.done, FALSE) = FALSE ORDER BY t.id DESC LIMIT 50`, [u.id]);
+      out.waitLeft = waitLeft;
+      if (isAdmin) out.adminTasks = await Q(c, 'SELECT id, type, title, reward, reward_kind, max, done FROM admin_tasks WHERE active ORDER BY id DESC LIMIT 50');
+    }
     if (action === 'auction' || action === 'bid') {
       out.aid = Number(b.id) || 0;
       out.bids = await Q(c, 'SELECT name, amount, (user_id = $2) AS mine FROM bids WHERE auction_id = $1 ORDER BY amount DESC LIMIT 30', [out.aid, u.id]);
@@ -478,6 +526,8 @@ app.post('/api/act', async (req, res) => {
 });
 
 const bot = new Telegraf(BOT_TOKEN);
+
+// 1. Botga start bosish yozuvi va premium emojilar
 bot.start(async (ctx) => {
   const ref = Number(String(ctx.payload || '').replace('ref_', '')), id = ctx.from.id;
   try {
@@ -491,14 +541,28 @@ bot.start(async (ctx) => {
       }
     }
   } catch (e) { console.error('referal xatosi:', e.message); }
-  ctx.reply('Coin Mine ga xush kelibsiz! Tangani bosib coin yig\'ing.\n\nYangiliklar @coinminer_team kanalida',
-    Markup.inlineKeyboard([Markup.button.webApp('O\'ynash', WEBAPP_URL)]));
+
+  const startText = 
+    `🔥 **O‘ynang, Coin yig‘ing va Auksionda haqiqiy sovrinlar yuting!** 🎁\n\n` +
+    `💡 **Sizni nimalar kutmoqda?**\n\n` +
+    `🪙 **Coin yig‘ing** — topshiriqlarni bajaring va balansingizni oshiring.\n\n` +
+    `🏆 **Auksionda qatnashib**, qimmatbaho buyumlar va sovrinlarni yutib oling!\n` +
+    `👥 **Do‘stlaringizni chorlang** va har bir taklif qilingan do‘stingiz uchun darhol **1000 Coin bonus**ga ega bo‘ling! 💰\n\n` +
+    `**Bizni kuzatib boring:**\n` +
+    `👉 @coinminer_team 👥`;
+
+  ctx.reply(startText, {
+    parse_mode: 'Markdown',
+    ...Markup.inlineKeyboard([Markup.button.webApp('O\'ynash 🚀', WEBAPP_URL)])
+  });
 });
+
 bot.command('stats', async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return;
   const r = (await pool.query('SELECT COUNT(*) AS n, COALESCE(SUM(coins),0) AS c, COALESCE(SUM(refs),0) AS f FROM users')).rows[0];
   ctx.reply(`Foydalanuvchilar: ${r.n}\nJami coin: ${r.c}\nReferallar: ${r.f}`);
 });
+
 // ---- Kanalga e'lonlar (CHANNEL; bot kanalda admin bo'lishi shart) ----
 const escH = (t) => String(t ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 async function postChannel(text, photo) {
@@ -508,30 +572,41 @@ async function postChannel(text, photo) {
     else await bot.telegram.sendMessage(CHANNEL, text, { parse_mode: 'HTML' });
   } catch (e) { console.error("Kanalga yuborib bo'lmadi:", e.message); }
 }
+
 // "@foydalanuvchi buyumni yutdi" (buyum rasmi bo'lsa, rasm bilan)
 async function postWinner(auId, title, top) {
   const mention = top.username ? '@' + top.username : `<a href="tg://user?id=${top.user_id}">${escH(top.name || 'Foydalanuvchi')}</a>`;
   const img = (await pool.query('SELECT image FROM auctions WHERE id=$1', [auId]).catch(() => ({ rows: [] }))).rows[0];
   await postChannel(`🏆 ${mention} «${escH(title)}» ni yutdi!\n\nTikilgan: ${top.amount} coin`, img && img.image);
 }
-// Promokod posti: "+N coin", holat (FAOL/TUGAGAN) va limit (necha kishi, qolgani yoki cheksiz)
+
+// 2. Promokod chiqarilganda iqtibos (blockquote) bilan kanalga yuborish
 const promoCaption = (p) => {
   const left = p.max > 0 ? Math.max(0, p.max - p.used) : null;
-  return `🎁 +${p.reward} 🪙\n\n${left === 0 ? '🔴 TUGAGAN' : '🟢 FAOL'}\n\n` + (p.max > 0 ? `👥 Limit: ${p.max} kishi. Qoldi: ${left}.` : '♾ Limit cheksiz.');
+  return `🎁 +${p.reward} 🪙\n\n` + (left === 0 ? '🔴 TUGAGAN' : '🟢 FAOL') + '\n\n' + (p.max > 0 ? `👥 Limit: ${p.max} kishi. Qoldi: ${left}.` : '♾ Limit cheksiz.');
 };
+
 async function postPromo({ code, reward, max, image }) {
   if (!CHANNEL) return;
   const m = /^data:image\/(?:jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(String(image || ''));
   const buf = m ? Buffer.from(m[1], 'base64') : null;
   const hasImg = Boolean(buf && buf.length <= 900 * 1024);
-  const text = promoCaption({ reward, max, used: 0 }) + (hasImg ? '' : `\n\nPromokod: ${code}`);   // rasm bo'lmasa, kod matnda ko'rinadi
+  
+  // Iqtibos (blockquote) formatiga o'rash
+  const innerText = promoCaption({ reward, max, used: 0 }) + (hasImg ? '' : `\n\nPromokod: ${code}`);
+  const quotedText = `<blockquote>${innerText}</blockquote>`;
+
   try {
-    const msg = hasImg
-      ? await bot.telegram.sendPhoto(CHANNEL, { source: buf }, { caption: text })
-      : await bot.telegram.sendMessage(CHANNEL, text);
+    let msg;
+    if (hasImg) {
+      msg = await bot.telegram.sendPhoto(CHANNEL, { source: buf }, { caption: quotedText, parse_mode: 'HTML' });
+    } else {
+      msg = await bot.telegram.sendMessage(CHANNEL, quotedText, { parse_mode: 'HTML' });
+    }
     await pool.query('UPDATE promos SET msg_id=$1 WHERE code=$2', [msg.message_id, code]);
   } catch (e) { console.error("Promokod postini yuborib bo'lmadi:", e.message); }
 }
+
 const promoTimers = new Map();
 function schedulePromoPost(code) {     // ketma-ket ishlatilsa, tahrirlar 5 soniyada bir marta birlashtiriladi
   if (promoTimers.has(code) || !CHANNEL) return;
@@ -540,12 +615,13 @@ function schedulePromoPost(code) {     // ketma-ket ishlatilsa, tahrirlar 5 soni
     try {
       const p = (await pool.query('SELECT reward, max, used, msg_id FROM promos WHERE code=$1', [code])).rows[0];
       if (!p || !p.msg_id) return;
-      const text = promoCaption(p);
-      await bot.telegram.editMessageCaption(CHANNEL, Number(p.msg_id), undefined, text)
-        .catch(() => bot.telegram.editMessageText(CHANNEL, Number(p.msg_id), undefined, text + `\n\nPromokod: ${code}`).catch(() => {}));
+      const text = `<blockquote>${promoCaption(p)}</blockquote>`;
+      await bot.telegram.editMessageCaption(CHANNEL, Number(p.msg_id), undefined, text, { parse_mode: 'HTML' })
+        .catch(() => bot.telegram.editMessageText(CHANNEL, Number(p.msg_id), undefined, `<blockquote>${promoCaption(p)}\n\nPromokod: ${code}</blockquote>`, { parse_mode: 'HTML' }).catch(() => {}));
     } catch { /* e'tiborsiz */ }
   }, 5000));
 }
+
 async function deletePromoPost(msgId) {
   if (CHANNEL && msgId) await bot.telegram.deleteMessage(CHANNEL, Number(msgId)).catch(() => {});
 }
@@ -625,6 +701,7 @@ bot.on('successful_payment', async (ctx) => {
     ctx.reply(`To'lov qabul qilindi: +${amt} ${kind === 'coin' ? 'coin' : 'olmos'}`);
   } catch (e) { console.error('to\'lov xatosi:', e.message); }
 });
+
 // Admin buyurtmani "Bajarildi" yoki "Rad etish" (olmos qaytariladi) deb belgilaydi
 bot.action(/^(ok|no):(\d+)$/, async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return ctx.answerCbQuery('Ruxsat yo\'q');
@@ -638,6 +715,7 @@ bot.action(/^(ok|no):(\d+)$/, async (ctx) => {
   await ctx.editMessageText(`${ctx.callbackQuery.message.text}\n\n${kind === 'ok' ? 'Bajarildi' : 'Rad etildi, olmos qaytarildi'}`).catch(() => {});
   ctx.answerCbQuery('Tayyor');
 });
+
 // Admin Stars yechish so'rovini "To'landi" yoki "Rad etish" (hamyonga qaytariladi) deb belgilaydi
 bot.action(/^(wok|wno):(\d+)$/, async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return ctx.answerCbQuery("Ruxsat yo'q");
@@ -651,6 +729,7 @@ bot.action(/^(wok|wno):(\d+)$/, async (ctx) => {
   await ctx.editMessageText(`${ctx.callbackQuery.message.text}\n\n${kind === 'wok' ? "To'landi" : 'Rad etildi, Stars qaytarildi'}`).catch(() => {});
   ctx.answerCbQuery('Tayyor');
 });
+
 bot.catch((e) => console.error('Bot xatosi:', e.message));
 
 // Render'da webhook (deploy paytida to'qnashmaydi), lokalda polling
@@ -664,6 +743,7 @@ if (process.env.RENDER || process.env.USE_WEBHOOK === 'true') {
   process.once('SIGTERM', () => bot.stop('SIGTERM'));
 }
 setInterval(sweepAuctions, 60000);   // har daqiqada muddati tugagan auksionlarni yakunlaydi
+
 // Render bepul rejasi 15 daqiqa harakatsizlikdan keyin uxlaydi: o'z-o'ziga ping yuborib uyg'oq tutamiz
 if (process.env.RENDER_EXTERNAL_URL && process.env.KEEP_ALIVE !== 'false') {
   setInterval(() => fetch(process.env.RENDER_EXTERNAL_URL + '/healthz').catch(() => {}), 10 * 60 * 1000);
