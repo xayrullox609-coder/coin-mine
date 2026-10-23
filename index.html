@@ -181,6 +181,12 @@
   .ft{font-size:20px;font-weight:800}
   .fbody{flex:1;overflow:auto;padding:14px 14px 20px;max-width:480px;width:100%;margin:0 auto}
   .fbody>.card{background:none;border:0;padding:0}
+  .seg{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin:6px 0 12px}
+  .seg button{flex:1;padding:10px;border-radius:10px;background:none;color:var(--muted);font-weight:800;letter-spacing:.5px}
+  .seg button.on{background:#2f7bff;color:#fff}
+  .bico{flex:none;display:block;border-radius:12px}
+  .soon{margin-left:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:#fbbf24;letter-spacing:.4px;white-space:nowrap}
+  #ntseg button{font-size:12px;padding:10px 4px}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -212,13 +218,12 @@
   <h3><i data-ic="bolt"></i>Boost xizmatlari</h3>
   <div class="note" style="margin-top:-4px">Olmos bilan ijtimoiy tarmoq xizmatlariga buyurtma bering</div>
   <div id="svlist"></div>
-  <h3 id="ordh" hidden><i data-ic="chart"></i>Mening buyurtmalarim</h3>
-  <div id="ordlist"></div>
 </section>
 
 <section id="v-au" hidden>
   <h3><i data-ic="gavel"></i>Auksion</h3>
   <div class="note" style="margin-top:-4px">Coin bilan tiking va sovrinni yuting. Buyumni tanlang</div>
+  <div class="seg" id="auseg"><button data-v="active" class="on">Faol</button><button data-v="ended">Tugagan</button></div>
   <div id="aulist"></div>
 </section>
 
@@ -248,6 +253,7 @@
   <button class="menu" data-p="top"><div class="ico" style="background:linear-gradient(135deg,#f59e0b,#ef4444)"><i data-ic="trophy" data-s="20"></i></div>Reyting<b>›</b></button>
   <button class="menu" data-p="fr"><div class="ico" style="background:linear-gradient(135deg,#14b8a6,#0ea5e9)"><i data-ic="users" data-s="20"></i></div>Do'stlar<b>›</b></button>
   <button class="menu" data-p="p2p"><div class="ico" style="background:linear-gradient(135deg,#22c55e,#0ea5e9)"><i data-ic="swap" data-s="20"></i></div>P2P bozori<b>›</b></button>
+  <button class="menu" data-p="orders"><div class="ico" style="background:linear-gradient(135deg,#64748b,#334155)"><i data-ic="chart" data-s="20"></i></div>Mening buyurtmalarim<b>›</b></button>
 
   <div id="p-buy" class="card col" hidden>
     <div class="nm">Coin va olmos sotib olish</div>
@@ -259,8 +265,10 @@
   </div>
   <div id="p-top" class="card col" hidden>
     <div class="nm">Eng yaxshi 10 talik</div>
+    <div class="seg" id="topseg"><button data-k="coin" class="on">TANGA</button><button data-k="diamond">OLMOS</button><button data-k="ref">REFERAL</button></div>
     <div id="toplist"></div>
     <div class="note" id="myrank"></div>
+    <div class="note" id="topnote"></div>
   </div>
   <div id="p-fr" class="card col" hidden>
     <div class="nm">Do'stlarni taklif qiling</div>
@@ -278,10 +286,15 @@
       <input id="wdnote" placeholder="Telegram username (@username) yoki ID" maxlength="40" autocapitalize="off" autocomplete="off">
       <button class="primary" id="wdsend">So'rov yuborish</button>
     </div>
-    <div class="bhead">SOTUVDAGI OLMOSLAR</div>
+    <div class="seg" id="p2pseg"><button data-k="diamond" class="on">OLMOS</button><button data-k="coin">TANGA</button></div>
+    <div class="bhead" id="p2phead">SOTUVDAGI OLMOSLAR</div>
     <div id="p2plist"></div>
     <div style="height:84px"></div>
     <button class="fab" id="p2pfab" aria-label="Olmos sotuvga qo'yish"><i data-ic="plus" data-s="30"></i></button>
+  </div>
+  <div id="p-orders" class="card col" hidden>
+    <div class="sub">Boost xizmatlariga bergan buyurtmalaringiz va ularning holati.</div>
+    <div id="ordlist"></div>
   </div>
   <div id="p-code" class="card col" hidden>
     <div class="nm">Mening kodim</div>
@@ -307,9 +320,10 @@
     <div class="sub">Yangi promokod qo'shish</div>
     <input id="apcode" placeholder="Promokod (masalan YANGI100)" maxlength="20" autocapitalize="characters" autocomplete="off">
     <input id="aprew" type="number" inputmode="numeric" placeholder="Mukofot (coin)">
-    <input id="apmax" type="number" inputmode="numeric" placeholder="Necha kishi ishlatishi mumkin">
+    <input id="apmax" type="number" inputmode="numeric" placeholder="Limit: necha kishi ishlatadi (bo'sh = cheksiz)">
     <button class="primary" id="apadd">Promokod qo'shish</button>
     <div id="aplist" style="margin-top:8px"></div>
+    <button class="sb own" id="chcheck" style="margin-top:10px">Kanal ulanishini tekshirish</button>
     <div class="sub" style="margin-top:16px">O'zimga coin berish</div>
     <input id="agive" type="number" inputmode="numeric" placeholder="Miqdor">
     <button class="primary" id="agivebtn">Coin berish</button>
@@ -328,6 +342,16 @@
     <button class="primary" id="aadd">Joylash</button>
     <div class="sub" style="margin-top:14px">Faol auksionlar</div>
     <div id="aadmin"></div>
+    <div class="sub" style="margin-top:22px;font-weight:700">Vazifa qo'shish</div>
+    <div class="seg" id="ntseg"><button data-t="channel" class="on">Kanal</button><button data-t="bot">Bot</button><button data-t="video">Reklama video</button><button data-t="site">Sayt havolasi</button></div>
+    <input id="nttitle" placeholder="Vazifa nomi" maxlength="80">
+    <input id="ntlink" placeholder="@kanal_username (bot kanalda admin bo'lishi shart)" autocapitalize="off" autocomplete="off">
+    <div class="mrow"><input id="ntreward" type="number" inputmode="numeric" placeholder="Mukofot miqdori"><div class="seg" id="ntkind" style="margin:6px 0;min-width:150px"><button data-k="coin" class="on">Coin</button><button data-k="diamond">Olmos</button></div></div>
+    <input id="ntwait" type="number" inputmode="numeric" placeholder="Kutish vaqti (soniya)" hidden>
+    <input id="ntmax" type="number" inputmode="numeric" placeholder="Limit: necha kishi bajaradi (bo'sh = cheksiz)">
+    <button class="primary" id="ntadd">Vazifani qo'shish</button>
+    <div class="sub" style="margin-top:14px">Faol vazifalar</div>
+    <div id="ntlist"></div>
   </div>
 </section>
 
@@ -374,7 +398,8 @@ const IC={
  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
  gavel:'<path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>',
  swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
- back:'<path d="m15 18-6-6 6-6"/>'
+ back:'<path d="m15 18-6-6 6-6"/>',
+ globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'
 };
 const ic=(n,s=20)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
 const coin=(s=16)=>`<svg class="c" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#f5b800" stroke="#c98a00" stroke-width="1.2"/><circle cx="12" cy="12" r="7.3" fill="none" stroke="#c98a00" stroke-width="1.4"/><path d="M13.9 9.3a3 3 0 1 0 0 5.4" fill="none" stroke="#c98a00" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -397,7 +422,8 @@ const CL=['g','v2','v3','v4','v5','v6','i','l8','l9'];
 const GLOW=['245,184,0,.35','96,165,250,.45','74,222,128,.40','217,119,6,.40','168,85,247,.45','34,211,238,.45','56,189,248,.45','59,130,246,.5','255,100,20,.55'];
 const cs=(k,sz)=>{const z=typeof sz==='number'?sz+'px':sz;return `<div class="ci ${CL[k]}" style="width:${z};height:${z}"></div>`;};
 const dia=(sz=16)=>`<svg class="c" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 13L2 9z" fill="#38bdf8" stroke="#0ea5e9" stroke-width="1.2" stroke-linejoin="round"/><path d="M2 9h20M9 3l3 6 3-6M12 9v13" fill="none" stroke="#e0f2fe" stroke-width="1"/></svg>`;
-const BONUS=500,DAY=864e5,EXCH=10,REFILL=20,AD_COST=2;
+const BONUS=500,DAY=864e5,REFILL=20,AD_COST=2;
+const PROMO_BG='data:image/jpeg;base64,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';
 let pend=0;let skew=0;
 const nowS=()=>Date.now()+skew;       // server vaqtiga moslangan hozirgi vaqt
 function leftStr(ms){
@@ -409,10 +435,20 @@ const SV=[
  {id:'ig',n:'Instagram',ic:'camera',c:['#f472b6','#c026d3'],items:[{id:'ig_views',n:"Ko'rishlar",q:1000,p:10},{id:'ig_subs',n:'Obunachi',q:50,p:20},{id:'ig_likes',n:'Like',q:50,p:10}]},
  {id:'tg',n:'Telegram',ic:'send',c:['#38bdf8','#2563eb'],items:[{id:'tg_views',n:"Ko'rishlar",q:1000,p:5},{id:'tg_react',n:'Reaksiya',q:10,p:1},{id:'tg_subs',n:'Obunachi',q:50,p:10}]},
  {id:'yt',n:'YouTube',ic:'play',c:['#f87171','#dc2626'],items:[{id:'yt_subs',n:'Obunachi',q:1000,p:100},{id:'yt_likes',n:'Like',q:10,p:1},{id:'yt_views',n:"Ko'rishlar",q:1000,p:10}]},
- {id:'pubg',n:'PUBG Mobile',ic:'gamepad',c:['#fbbf24','#d97706'],target:'PUBG Player ID',items:[{id:'pubg_uc',n:'UC',q:60,p:500,unit:' UC'}]},
+ {id:'pubg',n:'PUBG Mobile',ic:'gamepad',c:['#fbbf24','#d97706'],target:'PUBG Player ID',off:true,items:[{id:'pubg_uc',n:'UC',q:60,p:500,unit:' UC'}]},
  {id:'tt',n:'TikTok',ic:'music',c:['#94a3b8','#475569'],off:true,items:[]}
 ];
-const SVI={};SV.forEach(p=>p.items.forEach(i=>{SVI[i.id]={...i,pn:p.n}}));
+const SVI={};SV.forEach(p=>p.items.forEach(i=>{SVI[i.id]={...i,pn:p.n,pid:p.id,soon:!!p.off}}));
+let _pi=0;
+function platIcon(id,sz=48){      // har bir platformaning o'z belgisi (SVG)
+  const g='pi'+(++_pi),w=(defs,body)=>`<svg class="bico" width="${sz}" height="${sz}" viewBox="0 0 48 48" aria-hidden="true"><defs>${defs}</defs>${body}</svg>`;
+  if(id==='tg')return w(`<linearGradient id="${g}" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#37aee2"/><stop offset="1" stop-color="#1e96c8"/></linearGradient>`,`<circle cx="24" cy="24" r="24" fill="url(#${g})"/><path d="M34.5 14.2 11.6 23c-1.6.6-1.5 1.5-.3 1.9l5.8 1.8 2.2 6.8c.3.8.1 1.1 1 1.1.7 0 1-.3 1.4-.7l2.8-2.7 5.8 4.3c1.1.6 1.8.3 2.1-1l3.8-17.9c.4-1.6-.6-2.3-1.7-1.8z" fill="#fff"/><path d="m17.1 26.4 13.4-8.5c.6-.4 1.2-.2.7.3L20.5 28.4l-.4 4.7z" fill="#c8daea"/>`);
+  if(id==='ig')return w(`<linearGradient id="${g}" x1="0" y1="1" x2="1" y2="0"><stop offset="0" stop-color="#feda75"/><stop offset=".3" stop-color="#fa7e1e"/><stop offset=".55" stop-color="#d62976"/><stop offset=".8" stop-color="#962fbf"/><stop offset="1" stop-color="#4f5bd5"/></linearGradient>`,`<rect width="48" height="48" rx="12" fill="url(#${g})"/><rect x="10" y="10" width="28" height="28" rx="8" fill="none" stroke="#fff" stroke-width="3"/><circle cx="24" cy="24" r="7" fill="none" stroke="#fff" stroke-width="3"/><circle cx="32" cy="16" r="2" fill="#fff"/>`);
+  if(id==='yt')return w('',`<rect x="2" y="10" width="44" height="28" rx="9" fill="#ff0000"/><path d="M20 17.5v13l11-6.5z" fill="#fff"/>`);
+  if(id==='pubg')return w(`<linearGradient id="${g}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#d97706"/></linearGradient>`,`<rect width="48" height="48" rx="12" fill="url(#${g})"/><circle cx="24" cy="24" r="12" fill="none" stroke="#2a1a00" stroke-width="3.5"/><path d="M24 6v9M24 33v9M6 24h9M33 24h9" stroke="#2a1a00" stroke-width="3.5" stroke-linecap="round"/><circle cx="24" cy="24" r="3" fill="#2a1a00"/>`);
+  const nt='M27 10v18.5a5.5 5.5 0 1 1-5.5-5.5M27 10c.5 4 3.5 7 8 7.5';
+  return w('',`<rect width="48" height="48" rx="12" fill="#010101"/><g fill="none" stroke-width="3.6" stroke-linecap="round"><path d="${nt}" stroke="#25f4ee" transform="translate(-1.5,-1.5)"/><path d="${nt}" stroke="#fe2c55" transform="translate(1.5,1.5)"/><path d="${nt}" stroke="#fff"/></g>`);
+}
 const star=(sz=16)=>`<svg class="c" width="${sz}" height="${sz}" viewBox="0 0 24 24" aria-hidden="true"><path d="m12 2 3.1 6.3 6.9 1-5 4.9 1.2 6.8L12 17.8 5.8 21l1.2-6.8-5-4.9 6.9-1z" fill="#facc15" stroke="#d97706" stroke-width="1.2" stroke-linejoin="round"/></svg>`;
 const $=id=>document.getElementById(id);
 const SEP='\u00A0';   // minglar ajratgichi: bo'sh joy (nuqta kerak bo'lsa: const SEP='.')
@@ -439,14 +475,15 @@ async function api(action,i,x){
   const day=Math.floor(now/DAY);if(r.tapday!==day){r.taps=0;r.tapday=day;}
   r.p2p=r.p2p||[{id:1,seller_name:'Aziz',diamonds:120,stars:6,status:'active',own:false},{id:2,seller_name:'Madina',diamonds:500,stars:25,status:'active',own:false},{id:3,seller_name:'Jasur',diamonds:60,stars:4,status:'active',own:false}];
   r.starsBal=r.starsBal||0;
-  if(action==='p2p_create'){const dn=Math.floor(+x.diamonds),st=Math.floor(+x.stars);
-    if(!(dn>=10)||!(st>=1&&st<=5000))err='p2p_bad';else if(r.diamonds<dn)err='diamonds';
+  if(!r.p2p.some(o=>o.kind==='coin'))r.p2p.push({id:11,seller_name:'Dilnoza',diamonds:50000,stars:30,status:'active',own:false,kind:'coin'},{id:12,seller_name:'Sardor',diamonds:200000,stars:100,status:'active',own:false,kind:'coin'});
+  if(action==='p2p_create'){const kind=x.kind==='coin'?'coin':'diamond',dn=Math.floor(+x.qty),st=Math.floor(+x.stars),min=kind==='coin'?1000:10,have=kind==='coin'?r.coins:r.diamonds;
+    if(!(dn>=min)||!(st>=1&&st<=5000))err='p2p_bad';else if(have<dn)err=kind==='coin'?'funds':'diamonds';
     else if(r.p2p.filter(o=>o.own&&o.status==='active').length>=5)err='p2p_many';
-    else{r.diamonds-=dn;r.p2p.unshift({id:Date.now(),seller_name:'Siz',diamonds:dn,stars:st,status:'active',own:true});}}
-  if(action==='p2p_cancel'){const o=r.p2p.find(z=>z.id===i&&z.own&&z.status==='active');if(!o)err='p2p_gone';else{o.status='cancelled';r.diamonds+=o.diamonds;}}
+    else{if(kind==='coin')r.coins-=dn;else r.diamonds-=dn;r.p2p.unshift({id:Date.now(),seller_name:'Siz',diamonds:dn,stars:st,status:'active',own:true,kind});}}
+  if(action==='p2p_cancel'){const o=r.p2p.find(z=>z.id===i&&z.own&&z.status==='active');if(!o)err='p2p_gone';else{o.status='cancelled';if(o.kind==='coin')r.coins+=o.diamonds;else r.diamonds+=o.diamonds;}}
   if(action==='p2p_buy')err='demo_pay';
   if(action==='stars_withdraw')err=(+x.amount>=50)?'wd_funds':'wd_min';
-  const p2pOut={offers:r.p2p.filter(o=>o.status==='active').sort((a,b)=>(b.own?1:0)-(a.own?1:0)||a.stars/a.diamonds-b.stars/b.diamonds).map(o=>({id:o.id,seller_name:o.seller_name,diamonds:o.diamonds,stars:o.stars,mine:!!o.own})),myOffers:r.p2p.filter(o=>o.own).map(o=>({id:o.id,diamonds:o.diamonds,stars:o.stars,status:o.status}))};
+  const p2pOut={offers:r.p2p.filter(o=>o.status==='active').sort((a,b)=>(b.own?1:0)-(a.own?1:0)||a.stars/a.diamonds-b.stars/b.diamonds).map(o=>({id:o.id,seller_name:o.seller_name,diamonds:o.diamonds,stars:o.stars,mine:!!o.own,kind:o.kind||'diamond'})),myOffers:r.p2p.filter(o=>o.own).map(o=>({id:o.id,diamonds:o.diamonds,stars:o.stars,status:o.status}))};
   r.auc=r.auc||[
    {id:1,title:'iPhone 15 Pro',descr:"Yangi, qadoqlangan. Auksion g'olibiga sovg'a sifatida beriladi.",status:'active',created:1,ends_at:Date.now()+5*36e5,bids:[{name:'Jasur',amount:500},{name:'Madina',amount:900},{name:'Aziz',amount:1200}]},
    {id:2,title:'Telegram Premium (1 yil)',descr:'Premium obuna kodi.',status:'active',created:2,ends_at:Date.now()+26*36e5,bids:[{name:'Dilnoza',amount:300}]}];
@@ -457,19 +494,28 @@ async function api(action,i,x){
       if(!(amt>ta))err='bid_low';else if(r.coins+(mine?ta:0)<amt)err='funds';
       else{r.coins=r.coins+(mine?ta:0)-amt;a.bids.push({name:'Siz',amount:amt,mine:true});}}}
   const auList=r.auc.map(a=>{const t=a.bids.length?a.bids[a.bids.length-1]:null;return{id:a.id,title:a.title,descr:a.descr,status:a.status,created:a.created,has_img:false,top:t?t.amount:0,top_name:t?t.name:null,cnt:a.bids.length,winner_name:a.winner||null,win_amount:a.win_amount||null,ends_at:a.ends_at||null};});
+  let waitLeft=0;
+  r.at=r.at||[{id:1,type:'channel',title:"Yangiliklar kanaliga obuna bo'ling",link:'@coinminer_team',reward:2000,reward_kind:'coin',wait:0,max:0,done:0},
+    {id:2,type:'bot',title:"Hamkor botni ishga tushiring",link:'https://t.me/coinmineruz_bot',reward:5,reward_kind:'diamond',wait:10,max:0,done:0},
+    {id:3,type:'video',title:"Reklama videoni ko'ring",link:'https://example.com/video',reward:500,reward_kind:'coin',wait:30,max:0,done:0},
+    {id:4,type:'site',title:'Saytga kiring',link:'https://example.com',reward:300,reward_kind:'coin',wait:10,max:0,done:0}];
+  r.atp=r.atp||{};
+  if(action==='task_go'){const t=r.at.find(z=>z.id===i);if(!t)err='task_gone';else if(!r.atp[i])r.atp[i]={started:Date.now(),done:false};}
+  if(action==='task_check'){const t=r.at.find(z=>z.id===i),pr=r.atp[i];
+    if(!t)err='task_gone';else if(pr&&pr.done)err='claimed';
+    else if(t.type!=='channel'&&!pr)err='task_first';
+    else if(t.type!=='channel'&&Date.now()-pr.started<t.wait*1000){err='task_wait';waitLeft=Math.ceil((t.wait*1000-(Date.now()-pr.started))/1000);}
+    else{if(t.reward_kind==='diamond')r.diamonds+=t.reward;else r.coins+=t.reward;r.atp[i]={started:pr?pr.started:Date.now(),done:true};}}
   r.orders=r.orders||[];
-  if(action==='order'){const it=SVI[x.svc],cnt=Math.floor(+x.count),tgt=String(x.target||'').trim();
-    if(!it)err='gone';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
+  if(action==='order'){const it=SVI[x.svc],qty=Math.floor(+x.qty),cnt=(it&&qty>0&&qty%it.q===0)?qty/it.q:0,tgt=String(x.target||'').trim();
+    if(!it)err='gone';else if(it.soon)err='soon';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
     else{r.diamonds-=it.p*cnt;r.orders.unshift({id:Date.now(),svc:x.svc,count:cnt,total:it.p*cnt,status:'new'});}}
   if(action==='buy_stars')err='demo_pay';
   if(action==='tap'){const k=SK[r.skin],n=Math.max(0,Math.min(Math.floor(+x.n)||0,Math.floor((k.cap-r.taps)/k.m),200));r.coins+=n*k.m;r.taps+=n*k.m;}
   if(action==='buy'){if(!(i>=1&&i<SK.length)||r.skins.includes(i))err='gone';else if(!r.skins.includes(i-1))err='locked';else if(r.diamonds<SK[i].cost)err='diamonds';else{r.diamonds-=SK[i].cost;r.skins.push(i);r.skin=i;}}
   if(action==='select'){if(r.skins.includes(i))r.skin=i;else err='locked';}
-  if(action==='exchange'){const n=Math.floor(+x.n);if(!(n>=1&&n<=100000))err='bad_amount';else if(r.coins<n*EXCH)err='funds';else{r.coins-=n*EXCH;r.diamonds+=n;}}
   if(action==='refill'){if(r.diamonds<REFILL)err='diamonds';else{r.diamonds-=REFILL;r.taps=0;}}
   if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
-  if(action==='task'){const T=TASKS.find(x=>x.id===i);
-    if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&r.skins.length>=3))){r.coins+=T.r;r.tasks.push(T.id);}}
   r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:1,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:1,owner:1}];
   r.claims=r.claims||[];
   if(action==='ad_add'){const need=Math.floor(+x.need),ch=String(x.channel||'').trim().replace(/^@?/,'@');
@@ -497,17 +543,23 @@ async function api(action,i,x){
   const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0),admin:false};
   out.auctions=auList;
   Object.assign(out,p2pOut,{starsBal:r.starsBal});
+  out.atasks=r.at.filter(t=>!(r.atp[t.id]&&r.atp[t.id].done)).map(t=>({...t,started:r.atp[t.id]?r.atp[t.id].started:null}));out.waitLeft=waitLeft;
   if(action==='auction'||action==='bid'){const a=r.auc.find(z=>z.id===i);out.aid=i;out.bids=a?[...a.bids].reverse().map(b=>({name:b.name,amount:b.amount,mine:!!b.mine})):[];}
   if(action==='load')out.offline=offline;
   if(action==='top'){
-    const all=[...BOTS,['Siz',r.coins]].sort((a,b)=>b[1]-a[1]);
-    out.top=all.slice(0,10).map(x=>({name:x[0],coins:x[1]}));out.rank=all.findIndex(x=>x[0]==='Siz')+1;
+    const kd=x&&x.kind==='diamond'?'diamond':x&&x.kind==='ref'?'ref':'coin';
+    const lists={coin:BOTS,diamond:[['Aziz',4200],['Madina',3100],['Jasur',2650],['Dilnoza',1900],['Sardor',1200],['Malika',700],['Bekzod',350]],ref:[['Aziz',14],['Madina',11],['Jasur',9],['Dilnoza',7],['Sardor',5],['Malika',3],['Bekzod',2]]};
+    const mv=kd==='coin'?r.coins:kd==='diamond'?r.diamonds:0;
+    const all=[...lists[kd],...(kd==='ref'?[]:[['Siz',mv]])].sort((a,b)=>b[1]-a[1]);
+    out.top=all.slice(0,10).map(q=>({name:q[0],v:q[1],mine:q[0]==='Siz'}));out.topKind=kd;out.myVal=mv;
+    out.rank=kd==='ref'?lists.ref.length+1:all.findIndex(q=>q[0]==='Siz')+1;
+    if(kd==='ref')out.refEnds=Date.now()+17*864e5;
   }
   return out;
 }
 
 let s=null;
-const set=d=>{if(d.srvNow)skew=d.srvNow-Date.now();const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),starsBal:d.starsBal!==undefined?d.starsBal:(s?s.starsBal:0),offers:d.offers!==undefined?d.offers:(s?s.offers:[]),myOffers:d.myOffers!==undefined?d.myOffers:(s?s.myOffers:[]),t:Date.now()}};
+const set=d=>{if(d.srvNow)skew=d.srvNow-Date.now();const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),starsBal:d.starsBal!==undefined?d.starsBal:(s?s.starsBal:0),atasks:d.atasks!==undefined?d.atasks:(s?s.atasks:[]),adminTasks:d.adminTasks!==undefined?d.adminTasks:(s?s.adminTasks:[]),waitLeft:d.waitLeft||0,offers:d.offers!==undefined?d.offers:(s?s.offers:[]),myOffers:d.myOffers!==undefined?d.myOffers:(s?s.myOffers:[]),t:Date.now()}};
 const live=()=>s.coins;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800)}
 
@@ -572,8 +624,6 @@ function drawModal(){
       const btn=sel?'<button class="sb sel" disabled>TANLANGAN</button>':own?`<button class="sb own" data-a="select" data-k="${i}">TANLASH</button>`:open?`<button class="sb buyb" data-a="buy" data-k="${i}">SOTIB OLISH</button>`:'<button class="sb lock" disabled>YOPIQ</button>';
       return `<div class="sk"><div class="skc">${cs(i,92)}<span class="price">${k.cost}${dia(13)}</span></div><div class="skn">${k.n.toUpperCase()}</div><div class="sks">x${k.m} click · ${k.cap} cap/day</div>${btn}</div>`;
     }).join('')+'</div>';
-  }else if(modalMode==='dia'){
-    h=head('OLMOS SOTIB OLISH',`1 olmos = ${EXCH} coin · sizda ${fmt(s.coins)} coin`)+`<div class="mrow"><input id="exn" type="number" inputmode="numeric" placeholder="Nechta olmos" style="background:#0f0c06;color:#fff;border-color:#6b4e12"><button class="sb buyb" style="width:auto;padding:0 18px" data-a="exch">Olish</button></div>`;
   }else{
     h=modalMode==='order'?orderHTML():modalMode==='plat'?platHTML():modalMode==='auc'?aucHTML():modalMode==='p2psell'?sellHTML():head('ENERGIYA',"Energiyani to'ldiring")+`<div class="sk"><div class="skn">Energiya to'ldirish</div><div class="sks">Kunlik limitni qayta tiklaydi</div><button class="sb buyb" data-a="refill">${REFILL} olmos</button></div>`;
   }
@@ -584,7 +634,7 @@ function restorePanel(){if(movedEl){movedEl.hidden=true;$('v-pf').appendChild(mo
 function closeModal(){restorePanel();modalMode='';$('modal').hidden=true;}
 $('shopbtn').onclick=()=>openModal('shop');
 $('boostbtn').onclick=()=>openModal('boost');
-$('diaplus').onclick=()=>openModal('dia');
+$('diaplus').onclick=()=>{openPanel('buy');starUpdate();};   // "+" endi Stars bilan sotib olish oynasini ochadi
 $('modal').onclick=e=>{if(e.target.id==='modal')closeModal();};
 $('mbody').onclick=e=>{
   const t=e.target.closest('[data-a]');if(!t)return;
@@ -592,20 +642,23 @@ $('mbody').onclick=e=>{
   if(a==='close')closeModal();
   else if(a==='buy')act('buy',k);
   else if(a==='select')act('select',k);
-  else if(a==='exch')act('exchange',null,{n:$('exn').value});
   else if(a==='refill')act('refill');
-  else if(a==='order')act('order',null,{svc:ordSel.it.id,count:$('ordc').value,target:$('ordt').value});
+  else if(a==='order'){
+    const it=ordSel.it,q=Math.floor(+$('ordc').value);
+    if(!(q>=it.q&&q%it.q===0&&q/it.q<=100)){toast(`Miqdor ${fmt(it.q)}${it.unit||' ta'} ning ko'paytmasi bo'lsin (eng ko'pi ${fmt(it.q*100)})`);return;}
+    act('order',null,{svc:it.id,qty:q,target:$('ordt').value});
+  }
   else if(a==='svc'){ordSel={p:openPlat,it:openPlat.items[k]};modalMode='order';drawModal();}
   else if(a==='back'){modalMode='plat';drawModal();}
   else if(a==='bid')act('bid',aucSel,{amount:$('bidamt').value});
-  else if(a==='sellgo')act('p2p_create',null,{diamonds:$('sd').value,stars:$('ss').value});
+  else if(a==='sellgo')act('p2p_create',null,{kind:p2pKind,qty:$('sd').value,stars:$('ss').value});
   else if(a==='sellback')closeModal();
 };
 
 async function act(action,i,x){
   try{
     const d=await api(action,i,x);set(d);
-    if(d.err)toast(errMsg(d.err));
+    if(d.err)toast(d.err==='task_wait'&&d.waitLeft?`Hali erta: yana ${d.waitLeft} soniya kuting`:errMsg(d.err));
     else if(action==='ad_add'){closeForm();toast("Vazifa qo'shildi");}
     else if(action==='ad_check')toast('Mukofot: +1 olmos');
     else if(action==='p2p_create'){toast("Olmos sotuvga qo'yildi");closeModal();}
@@ -618,12 +671,20 @@ async function act(action,i,x){
     else if(action==='order'){toast('Buyurtma qabul qilindi');closeModal();}
     else if(action==='buy')toast('Tanga sotib olindi va tanlandi');
     else if(action==='select')toast('Tanga tanlandi');
-    else if(action==='exchange')toast('Olmos sotib olindi');
     else if(action==='refill')toast("Energiya to'ldirildi");
+    else if(action==='task_check')toast('Mukofot olindi');
+    else if(action==='admin_task_add'){toast("Vazifa qo'shildi");['nttitle','ntlink','ntreward','ntmax'].forEach(id=>$(id).value='');}
+    else if(action==='admin_task_del')toast("Vazifa o'chirildi");
     else if(action==='code_set')toast('Kod saqlandi');
     else if(action==='send'){toast('Coin yuborildi');$('sendamt').value='';}
     else if(action==='promo'){toast('Promokod faollashtirildi');$('promoin').value='';}
-    else if(action==='admin_promo'){toast("Promokod qo'shildi");['apcode','aprew','apmax'].forEach(id=>$(id).value='');}
+    else if(action==='admin_promo_del')toast("Promokod o'chirildi");
+    else if(action==='admin_promo'){
+      ['apcode','aprew','apmax'].forEach(id=>$(id).value='');
+      if(d.channelOk===false){const m=`Promokod qo'shildi, lekin kanalga yuborilmadi: ${d.channelErr||"noma'lum xato"}`;(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
+      else toast("Promokod qo'shildi va kanalga yuborildi");
+    }
+    else if(action==='admin_channel_check'){const m=(d.chStatus&&d.chStatus.text)||"Javob kelmadi";(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
     else if(action==='admin_give'){toast('Coin berildi');$('agive').value='';}
     else if(action==='admin_take'){toast("Coin olib qo'yildi");['atcode','atamt'].forEach(id=>$(id).value='');}
     else if(action==='admin_reset')toast("Hammaning coini 0 qilindi");
@@ -634,23 +695,26 @@ async function act(action,i,x){
       if(st==='paid'){toast("To'lov qabul qilindi, balans yangilanmoqda");const rf=action==='p2p_buy'?'p2p':'profile';setTimeout(()=>act(rf),1500);setTimeout(()=>act(rf),5000);}
       else if(st==='failed')toast("To'lov amalga oshmadi");
     });
-    if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'+'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
   }catch(e){toast(e.message||'Xato')}
   if(!$('v-tk').hidden)renderTasks();
   if(!$('v-pf').hidden)renderProfile();
   if(!$('v-bs').hidden)renderBoost();
   if(!$('v-au').hidden)renderAuc();
-  if(movedEl&&movedEl.id==='p-admin')renderAdminAuc();
+  if(movedEl&&movedEl.id==='p-admin'){renderAdminAuc();renderAdminPromos();renderAdminTasks();}
   if(fullEl&&fullEl.id==='p-p2p')renderP2P();
+  if(movedEl&&movedEl.id==='p-orders')renderOrders();
   if(modalMode)drawModal();
   render();
 }
 
 function showTop(d){
-  $('toplist').innerHTML=d.top.map((u,i)=>`<div class="row ${u.name==='Siz'?'me':''}"><span><span class="medal${i<3?' m'+(i+1):''}">${i+1}</span> ${u.name.replace(/</g,'&lt;')}</span><b>${coin(15)}${fmt(u.coins)}</b></div>`).join('');
-  $('myrank').textContent='Sizning o\'rningiz: #'+d.rank;
+  const k=d.topKind||topKind,ico=k==='coin'?coin(15):k==='diamond'?dia(15):ic('users',15),unit=k==='ref'?' ta':'';
+  const rows=(d.top||[]).map((u,i)=>`<div class="row ${u.mine||u.name==='Siz'?'me':''}"><span><span class="medal${i<3?' m'+(i+1):''}">${i+1}</span> ${esc(u.name||'')}</span><b style="display:flex;align-items:center;gap:4px">${ico}${fmt(u.v)}${unit}</b></div>`);
+  $('toplist').innerHTML=rows.length?rows.join(''):'<div class="sub" style="padding:10px 0">Hali hech kim yo\'q</div>';
+  $('myrank').textContent=k==='ref'?(d.myVal>0?`Sizning o'rningiz: #${d.rank} (${d.myVal} ta taklif)`:"Shu davrda hali do'st taklif qilmagansiz"):'Sizning o\'rningiz: #'+d.rank;
+  $('topnote').textContent=k==='ref'&&d.refEnds?`Referal reytingi har 30 kunda 0 ga qaytadi. Yangilanishgacha: ${leftStr(d.refEnds-nowS())}`:'';
 }
-
+$('topseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;topKind=b.dataset.k;[...$('topseg').children].forEach(x=>x.classList.toggle('on',x===b));act('top',null,{kind:topKind});};
 function link(){return `https://t.me/${String(s.bot||'').replace(/^@/,'')}?start=ref_${s.me}`}
 function showFriends(){
   if(!s)return;
@@ -675,12 +739,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 });
 $('bonus').onclick=()=>act('bonus');
 
-const TASKS=[
-  {id:'channel',e:'send',n:"Kanalga obuna bo'ling",r:2000},
-  {id:'friends3',e:'users',n:"3 ta do'st taklif qiling",r:3000},
-  {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
-];
-const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos, narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Paket soni 1 dan 100 gacha bo'lsin",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",task_gone:"Vazifa tugagan yoki mavjud emas",task_first:"Avval \"O'tish\" tugmasini bosing",bad_task:"Vazifa ma'lumotlari noto'g'ri: nom, havola yoki mukofotni tekshiring",soon:"Bu xizmat tez orada qo'shiladi (Coming soon)",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
 function taskBtns(d,done,goFn,checkFn){
   const w=document.createElement('div');w.className='acts';
   if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
@@ -728,16 +787,60 @@ function adUpdate(){
 $('plus').onclick=()=>{$('adform').hidden=!$('adform').hidden;adUpdate();};
 $('adpay').onclick=()=>{const c=adCheck();if(c.msg){toast(c.msg);adUpdate();return;}act('ad_add',null,{channel:c.v.ch,need:c.v.need});};
 function closeForm(){$('adform').hidden=true;['adch','adneed'].forEach(id=>$(id).value='');}
+const TT={channel:['send','Kanal'],bot:['bot','Bot'],video:['play','Reklama video'],site:['globe','Sayt']};
+function taskLeft(t){return t.started?Math.max(0,Math.ceil((t.wait*1000-(nowS()-t.started))/1000)):null;}
+function openTaskLink(t){
+  const u=t.type==='channel'?'https://t.me/'+t.link.replace('@',''):t.link;
+  if(/^https:\/\/t\.me\//.test(u)&&online&&tg.openTelegramLink)tg.openTelegramLink(u);
+  else if(online&&tg.openLink)tg.openLink(u);
+  else{try{window.open(u,'_blank')}catch(e){}}
+}
 function renderTasks(){
   if(!s)return;
   $('tasks').innerHTML='';renderAds();
-  TASKS.forEach(T=>{
-    const done=s.tasks.includes(T.id),d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">${ic(T.e,24)}</div><div class="info"><div class="nm">${T.n}</div><div class="sub">Mukofot: +${fmt(T.r)} ${coin(14)}</div></div>`;
-    taskBtns(d,done,T.id==='channel'?()=>openCh(s.channel):null,()=>act('task',T.id));
+  (s.atasks||[]).forEach(t=>{
+    const d=document.createElement('div');d.className='card';
+    const left=t.type==='channel'?null:taskLeft(t),rw=`+${fmt(t.reward)} ${t.reward_kind==='diamond'?dia(14):coin(14)}`;
+    const extra=[t.max>0?`qoldi ${t.max-t.done}`:'',left===null?'':left>0?`kuting ${left} s`:'tayyor'].filter(Boolean).join(' · ');
+    d.innerHTML=`<div class="ico">${ic(TT[t.type][0],24)}</div><div class="info"><div class="nm"></div><div class="sub">${TT[t.type][1]} · Mukofot: ${rw}${extra?' · '+extra:''}</div></div>`;
+    d.querySelector('.nm').textContent=t.title;
+    taskBtns(d,false,()=>{openTaskLink(t);if(t.type!=='channel')act('task_go',t.id);},()=>act('task_check',t.id));
     $('tasks').appendChild(d);
   });
 }
+setInterval(()=>{if(!s||$('v-tk').hidden)return;if((s.atasks||[]).some(t=>t.type!=='channel'&&t.started&&taskLeft(t)>0))renderTasks();},1000);
+let ntType='channel',ntKind='coin';
+const NT_PH={channel:"@kanal_username (bot kanalda admin bo'lishi shart)",bot:'@bot_username yoki https://t.me/bot?start=...',video:'Video havolasi (https://...)',site:'Sayt havolasi (https://...)'};
+function ntUpdate(){
+  $('ntlink').placeholder=NT_PH[ntType];
+  $('ntwait').hidden=ntType==='channel';
+  if(ntType!=='channel'&&!$('ntwait').value)$('ntwait').value=ntType==='video'?30:10;
+}
+$('ntseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;ntType=b.dataset.t;[...$('ntseg').children].forEach(x=>x.classList.toggle('on',x===b));$('ntwait').value='';ntUpdate();};
+$('ntkind').onclick=e=>{const b=e.target.closest('button');if(!b)return;ntKind=b.dataset.k;[...$('ntkind').children].forEach(x=>x.classList.toggle('on',x===b));};
+$('ntadd').onclick=()=>{
+  const title=$('nttitle').value.trim(),link=$('ntlink').value.trim(),reward=Math.floor(+$('ntreward').value);
+  if(title.length<2){toast('Vazifa nomini yozing');return;}
+  if(!link){toast('Havolani yozing');return;}
+  if(!(reward>=1)){toast('Mukofot miqdorini yozing');return;}
+  act('admin_task_add',null,{type:ntType,title,link,reward,kind:ntKind,wait:ntType==='channel'?0:Math.floor(+$('ntwait').value)||0,max:$('ntmax').value});
+};
+$('chcheck').onclick=()=>act('admin_channel_check');
+function renderAdminTasks(){
+  const L=$('ntlist');if(!L||!s)return;
+  L.innerHTML='';
+  const list=s.adminTasks||[];
+  if(!list.length){L.innerHTML='<div class="sub">Faol vazifa yo\'q</div>';return;}
+  list.forEach(t=>{
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML=`<span><b></b><br><small style="color:var(--muted)">${TT[t.type][1]} · +${fmt(t.reward)} ${t.reward_kind==='diamond'?'olmos':'coin'} · bajarilgan ${t.done}/${t.max>0?t.max:'cheksiz'}</small></span><button class="buy" style="background:#ef4444">O'chirish</button>`;
+    r.querySelector('b').textContent=t.title;
+    r.querySelector('button').onclick=()=>ask(`"${t.title}" vazifasini o'chirasizmi?`,()=>act('admin_task_del',t.id));
+    L.appendChild(r);
+  });
+}
+ntUpdate();
+
 function renderProfile(){
   if(!s)return;
   if(s.codeLocked||document.activeElement!==$('mycode'))$('mycode').value=s.code;
@@ -745,9 +848,9 @@ function renderProfile(){
   $('codehint').textContent=s.codeLocked?"Kodingiz o'zgartirilgan, endi qayta o'zgartirib bo'lmaydi.":"Sizga tasodifiy kod berilgan. Uni faqat 1 marta o'zgartirish mumkin.";
   if(!s.admin){['p-admin','menu-admin'].forEach(id=>{const el=$(id);if(el)el.remove();});}   // admin bo'lmaganlar uchun sahifadan butunlay olib tashlanadi
   else $('menu-admin').hidden=false;
-  $('aplist').innerHTML=s.promos.length?s.promos.map(p=>`<div class="row"><b>${p.code.replace(/</g,'&lt;')}</b><span>${fmt(p.reward)} coin · ${p.used}/${p.max}</span></div>`).join(''):'<div class="sub">Hali promokod qo\'shilmagan</div>';
+  renderAdminPromos();
 }
-const PT={p2p:'P2P bozori',admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
+const PT={orders:"Mening buyurtmalarim",p2p:'P2P bozori',admin:'Admin panel',code:'Kod',promo:'Promokod',buy:'Coin va olmos sotib olish',top:'Reyting',fr:"Do'stlar"};
 let fullEl=null;
 function openFull(key){                // P2P: to'liq ekran
   const el=$('p-'+key);if(!el)return;
@@ -771,10 +874,11 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
   const k=b.dataset.p;
   if(k==='admin'&&!(s&&s.admin))return;
   if(k==='p2p')openFull(k);else openPanel(k);
-  if(k==='top')act('top');
+  if(k==='top')act('top',null,{kind:topKind});
   if(k==='fr')showFriends();
   if(k==='buy')starUpdate();
-  if(k==='admin')act('auctions');
+  if(k==='admin'){act('auctions');act('tasks');}
+  if(k==='orders'){renderOrders();act('boost');}
   if(k==='p2p')act('p2p');
 });
 $('codesave').onclick=()=>{
@@ -786,7 +890,36 @@ $('codesave').onclick=()=>{
 };
 $('sendbtn').onclick=()=>act('send',null,{to:$('sendto').value,amount:$('sendamt').value});
 $('promobtn').onclick=()=>act('promo',null,{code:$('promoin').value});
-$('apadd').onclick=()=>act('admin_promo',null,{code:$('apcode').value,reward:$('aprew').value,max:$('apmax').value});
+function promoImage(code){      // kanal posti uchun: yashil rasm ichiga promokod yoziladi
+  return new Promise(res=>{
+    const im=new Image();
+    im.onload=()=>{
+      const c=document.createElement('canvas');c.width=im.width;c.height=im.height;
+      const x=c.getContext('2d'),W=c.width,H=c.height,F='system-ui,-apple-system,Segoe UI,Roboto,sans-serif';
+      x.drawImage(im,0,0);x.textAlign='center';x.textBaseline='middle';
+      let fs=Math.round(H*.26);x.font='800 '+fs+'px '+F;
+      while(x.measureText(code).width>W*.78&&fs>20){fs-=2;x.font='800 '+fs+'px '+F;}
+      const bw=x.measureText(code).width+fs*.9,bh=fs*1.5,bx=(W-bw)/2,by=H*.52-bh/2,r=bh*.28;
+      x.fillStyle='rgba(0,60,0,.30)';x.beginPath();
+      x.moveTo(bx+r,by);x.arcTo(bx+bw,by,bx+bw,by+bh,r);x.arcTo(bx+bw,by+bh,bx,by+bh,r);x.arcTo(bx,by+bh,bx,by,r);x.arcTo(bx,by,bx+bw,by,r);x.closePath();x.fill();
+      x.fillStyle='rgba(255,255,255,.9)';x.font='700 '+Math.round(H*.07)+'px '+F;x.fillText('PROMOKOD',W/2,by-H*.07);
+      x.shadowColor='rgba(0,40,0,.65)';x.shadowBlur=12;x.shadowOffsetY=4;
+      x.fillStyle='#fff';x.font='800 '+fs+'px '+F;x.fillText(code,W/2,H*.52);
+      res(c.toDataURL('image/jpeg',.9));
+    };
+    im.onerror=()=>res('');
+    im.src=PROMO_BG;
+  });
+}
+$('apadd').onclick=async()=>{
+  const code=$('apcode').value.trim().toUpperCase(),reward=Math.floor(+$('aprew').value),mx=$('apmax').value.trim();
+  if(!/^[A-Z0-9]{3,20}$/.test(code)){toast("Promokod 3-20 ta harf yoki raqamdan iborat bo'lsin");return;}
+  if(!(reward>=1)){toast('Mukofot (coin) miqdorini yozing');return;}
+  if(mx!==''&&!(Math.floor(+mx)>=1)){toast("Limit 1 dan katta bo'lsin yoki bo'sh qoldiring (cheksiz)");return;}
+  const image=await promoImage(code);
+  act('admin_promo',null,{code,reward,max:mx,image});
+};
+
 $('agivebtn').onclick=()=>act('admin_give',null,{amount:$('agive').value});
 $('atbtn').onclick=()=>act('admin_take',null,{code:$('atcode').value,amount:$('atamt').value});
 let rst=0;
@@ -796,7 +929,7 @@ $('resetbtn').onclick=()=>{
   act('admin_reset',null,{confirm:true});
 };
 
-let aucSel=0,aImg='',openP='',ordSel=null,openPlat=null,movedEl=null;
+let topKind='coin',auView='active',p2pKind='diamond',aucSel=0,aImg='',openP='',ordSel=null,openPlat=null,movedEl=null;
 const STATUS={new:'Kutilmoqda',done:'Bajarildi',rejected:"Rad etildi, olmos qaytarildi"};
 function renderBoost(){
   if(!s)return;
@@ -804,28 +937,35 @@ function renderBoost(){
   SV.forEach(p=>{
     const d=document.createElement('div');d.className='card col';
     if(p.off)d.style.opacity='.55';
-    d.innerHTML=`<div class="phead"><div class="ico" style="background:linear-gradient(135deg,${p.c[0]},${p.c[1]})">${ic(p.ic,24)}</div><div class="info"><div class="nm">${p.n}</div><div class="sub">${p.off?'Xizmat mavjud emas':p.items.length+' ta xizmat'}</div></div>${p.off?'':'<b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>'}</div>`;
+    d.innerHTML=`<div class="phead">${platIcon(p.id,48)}<div class="info"><div class="nm">${p.n}</div><div class="sub">${p.off?'Coming soon':p.items.length+' ta xizmat'}</div></div>${p.off?'':'<b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>'}</div>`;
     if(!p.off)d.querySelector('.phead').onclick=()=>{openPlat=p;openModal('plat');};
     $('svlist').appendChild(d);
-  });
-  $('ordh').hidden=!s.orders.length;$('ordlist').innerHTML='';
-  s.orders.forEach(o=>{
-    const it=SVI[o.svc],d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">${ic('chart',22)}</div><div class="info"><div class="nm"></div><div class="sub">${o.total} ${dia(13)} · ${STATUS[o.status]||o.status}</div></div>`;
-    d.querySelector('.nm').textContent=(it?it.pn+' · '+it.n:o.svc)+' x'+o.count;
-    $('ordlist').appendChild(d);
   });
 }
 function platHTML(){
   const p=openPlat;
   return head(p.n,'Xizmatni tanlang')+'<div class="sgrid" style="grid-template-columns:1fr">'+p.items.map((it,i)=>`<div class="sk" style="display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left"><div><div class="skn" style="margin:0">${it.n}</div><div class="sks" style="margin:2px 0 0">${fmt(it.q)}${it.unit||' ta'}</div></div><button class="sb buyb" style="width:auto;padding:10px 14px" data-a="svc" data-k="${i}">${dia(14)} ${it.p}</button></div>`).join('')+'</div>';
 }
-function orderHTML(){
-  const {p,it}=ordSel,pt=(($('ordt')||{}).value||'').replace(/"/g,'&quot;'),pc=(($('ordc')||{}).value||'1');
-  return head(p.n+' · '+it.n,`${fmt(it.q)}${it.unit||' ta'} = ${it.p} olmos (sizda ${fmt(s.diamonds)})`)+
-   `<input id="ordt" placeholder="${p.target||'Havola yoki username'}" maxlength="200" value="${pt}"><div class="mrow" style="margin-top:8px"><input id="ordc" type="number" inputmode="numeric" min="1" value="${pc}" placeholder="Paket soni"><div class="skn" id="ordsum" style="align-self:center;white-space:nowrap;margin:0"></div></div><button class="sb buyb" style="margin-top:12px" data-a="order">Buyurtma berish</button><button class="sb own" style="margin-top:8px" data-a="back">Orqaga</button>`;
+function fmtDate(ms){const d=new Date(ms),p=n=>String(n).padStart(2,'0');return p(d.getDate())+'.'+p(d.getMonth()+1)+' '+p(d.getHours())+':'+p(d.getMinutes());}
+function renderOrders(){
+  const L=$('ordlist');if(!L||!s)return;
+  L.innerHTML='';
+  const list=s.orders||[];
+  if(!list.length){L.innerHTML='<div class="sub" style="text-align:center;padding:16px 0">Hozircha buyurtma yo\'q</div>';return;}
+  list.forEach(o=>{
+    const it=SVI[o.svc],r=document.createElement('div');r.className='row';
+    const col={new:'#f59e0b',done:'#22c55e',rejected:'#ef4444'}[o.status]||'#9a9ab2';
+    r.innerHTML=`<span style="display:flex;align-items:center;gap:10px;min-width:0">${it?platIcon(it.pid,40):''}<span><b class="nmx"></b><br><small style="color:var(--muted)">${fmtDate(o.created||o.id)}</small></span></span><span style="text-align:right"><b style="display:flex;align-items:center;gap:4px;justify-content:flex-end">${dia(14)}${fmt(o.total)}</b><small style="color:${col};font-weight:700">${STATUS[o.status]||o.status}</small></span>`;
+    r.querySelector('.nmx').textContent=it?it.pn+' · '+it.n+' · '+fmt(o.count*it.q)+(it.unit||' ta'):o.svc;
+    L.appendChild(r);
+  });
 }
-function ordSum(){const c=Math.floor(+(($('ordc')||{}).value))||0;if($('ordsum'))$('ordsum').textContent=ordSel?(c*ordSel.it.p)+' olmos':'';}
+function orderHTML(){
+  const {p,it}=ordSel,pt=(($('ordt')||{}).value||'').replace(/"/g,'&quot;'),pc=(($('ordc')||{}).value||String(it.q));
+  return head(p.n+' · '+it.n,`${fmt(it.q)}${it.unit||' ta'} = ${it.p} olmos (sizda ${fmt(s.diamonds)})`)+
+   `<input id="ordt" placeholder="${p.target||'Havola yoki username'}" maxlength="200" value="${pt}"><div class="mrow" style="margin-top:8px"><input id="ordc" type="number" inputmode="numeric" min="${it.q}" step="${it.q}" value="${pc}" placeholder="Miqdor"><div class="skn" id="ordsum" style="align-self:center;white-space:nowrap;margin:0"></div></div><div class="sks" style="margin:8px 0 0">Miqdor ${fmt(it.q)}${it.unit||' ta'} ning ko'paytmasi bo'lsin (masalan ${fmt(it.q*2)}). ${fmt(it.q)}${it.unit||' ta'} = ${it.p} olmos.</div><button class="sb buyb" style="margin-top:12px" data-a="order">Buyurtma berish</button><button class="sb own" style="margin-top:8px" data-a="back">Orqaga</button>`;
+}
+function ordSum(){const q=Math.floor(+((($('ordc')||{}).value)))||0,it=ordSel&&ordSel.it;if($('ordsum'))$('ordsum').textContent=it&&q>0&&q%it.q===0&&q/it.q<=100?(q/it.q*it.p)+' olmos':'';}
 $('mbody').oninput=e=>{if(e.target.id==='ordc')ordSum();if(e.target.id==='sd'||e.target.id==='ss')sellSum();};
 
 const esc=t=>String(t).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
@@ -834,8 +974,10 @@ const ask=(msg,fn)=>{if(tg&&tg.showConfirm)tg.showConfirm(msg,ok=>{if(ok)fn();})
 function renderAuc(){
   if(!s)return;
   const L=$('aulist');L.innerHTML='';
-  if(!s.auctions.length){L.innerHTML='<div class="note">Hozircha auksion yo\'q</div>';return;}
-  s.auctions.forEach(a=>{
+  const ended=a=>a.status!=='active'||(a.ends_at&&a.ends_at<=nowS());
+  const list=s.auctions.filter(a=>auView==='ended'?ended(a):!ended(a));
+  if(!list.length){L.innerHTML='<div class="note">'+(auView==='ended'?"Tugagan auksion yo'q":"Faol auksion yo'q")+'</div>';return;}
+  list.forEach(a=>{
     const d=document.createElement('div');d.className='card';d.style.cursor='pointer';
     const st=a.status==='active'?`Tikilgan: ${fmt(a.top)} coin · ${a.cnt} ta tikish`+(a.ends_at?' · '+leftStr(a.ends_at-nowS()):''):a.status==='ended'?'Yakunlandi'+(a.winner_name?': '+esc(a.winner_name):''):'Bekor qilingan';
     d.innerHTML=`${aucImg(a,'thumb')}<div class="info"><div class="nm"></div><div class="sub">${st}</div></div><b style="margin-left:auto;color:var(--muted);font-size:20px">›</b>`;
@@ -855,6 +997,18 @@ function aucHTML(){
   if(active)h+=`<div class="mrow" style="margin-top:12px"><input id="bidamt" type="number" inputmode="numeric" placeholder="Kamida ${fmt(top+1)} coin" value="${pv}"><button class="sb buyb" style="width:auto;padding:0 20px" data-a="bid">Tikish</button></div><div class="sks" style="margin-top:6px">Sizda: ${fmt(s.coins)} coin. Tikilgan coin ushlab turiladi, ustingizdan oshib ketilsa qaytariladi.</div>`;
   else if(a.winner_name)h+=`<div class="topbid" style="margin-top:12px"><span>G'olib</span><b>${esc(a.winner_name)} · ${fmt(a.win_amount)}</b></div>`;
   return h;
+}
+function renderAdminPromos(){
+  const L=$('aplist');if(!L||!s)return;
+  L.innerHTML='';
+  if(!(s.promos||[]).length){L.innerHTML='<div class="sub">Hali promokod qo\'shilmagan</div>';return;}
+  s.promos.forEach(p=>{
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML='<span></span><button class="buy" style="background:#ef4444;min-width:auto;padding:8px 12px">O\'chirish</button>';
+    r.querySelector('span').textContent=p.code+' · '+fmt(p.reward)+' coin · '+(p.max>0?p.used+'/'+p.max:p.used+' / cheksiz');
+    r.querySelector('button').onclick=()=>ask('"'+p.code+'" promokodini o\'chirasizmi? Kanaldagi post ham o\'chiriladi.',()=>act('admin_promo_del',null,{code:p.code}));
+    L.appendChild(r);
+  });
 }
 function renderAdminAuc(){
   const L=$('aadmin');if(!L||!s)return;
@@ -889,27 +1043,34 @@ $('aadd').onclick=()=>{
 
 function renderP2P(){
   if(!s||!$('p2plist'))return;
+  const coinTab=p2pKind==='coin',nm=coinTab?'coin':'olmos';
   $('sbal').textContent=fmt(s.starsBal||0)+' Stars';
+  $('p2phead').textContent=coinTab?'SOTUVDAGI TANGALAR':'SOTUVDAGI OLMOSLAR';
   const L=$('p2plist');L.innerHTML='';
-  const offers=s.offers||[];
-  if(!offers.length)L.innerHTML='<div class="sub" style="text-align:center;padding:14px 0">Hozircha sotuvda olmos yo\'q.<br>Pastdagi + tugmasi bilan o\'zingiz olmos qo\'ying.</div>';
+  const offers=(s.offers||[]).filter(o=>(o.kind||'diamond')===p2pKind);
+  if(!offers.length)L.innerHTML=`<div class="sub" style="text-align:center;padding:14px 0">Hozircha sotuvda ${coinTab?'tanga':'olmos'} yo'q.<br>Pastdagi + tugmasi bilan o'zingiz ${coinTab?'tanga':'olmos'} qo'ying.</div>`;
   offers.forEach(o=>{
     const r=document.createElement('div');r.className='row';
     const rate=Math.round(o.diamonds/o.stars*10)/10;if(o.mine)r.style.background='rgba(74,222,128,.14)';
-    r.innerHTML=`<span>${dia(18)} <b>${fmt(o.diamonds)}</b> olmos<br><small style="color:var(--muted)">${o.mine?'<b style="color:#4ade80">Sizniki</b>':esc(o.seller_name||'')} · 1 Stars = ${String(rate).replace('.',',')} olmos</small></span>${o.mine?'<button class="buy" style="background:#64748b">Bekor</button>':'<button class="buy">'+star(14)+' '+fmt(o.stars)+' Stars</button>'}`;
-    r.querySelector('button').onclick=()=>o.mine?ask('Taklifni bekor qilasizmi? '+o.diamonds+' olmos qaytariladi.',()=>act('p2p_cancel',o.id)):act('p2p_buy',o.id);
+    r.innerHTML=`<span>${coinTab?coin(18):dia(18)} <b>${fmt(o.diamonds)}</b> ${nm}<br><small style="color:var(--muted)">${o.mine?'<b style="color:#4ade80">Sizniki</b>':esc(o.seller_name||'')} · 1 Stars = ${fmt(Math.floor(rate))}${rate%1?','+String(Math.round(rate%1*10)):''} ${nm}</small></span>${o.mine?'<button class="buy" style="background:#64748b">Bekor</button>':'<button class="buy">'+star(14)+' '+fmt(o.stars)+' Stars</button>'}`;
+    r.querySelector('button').onclick=()=>o.mine?ask('Taklifni bekor qilasizmi? '+fmt(o.diamonds)+' '+nm+' qaytariladi.',()=>act('p2p_cancel',o.id)):act('p2p_buy',o.id);
     L.appendChild(r);
   });
 }
 function sellHTML(){
-  const pd=((($('sd')||{}).value)||''),ps=((($('ss')||{}).value)||'');
-  return head("Olmos sotuvga qo'yish",`Sizda ${fmt(s.diamonds)} olmos bor`)+
-   `<input id="sd" type="number" inputmode="numeric" placeholder="Nechta olmos (kamida 10)" value="${pd}"><input id="ss" type="number" inputmode="numeric" placeholder="Necha Stars evaziga (1-5000)" value="${ps}"><div class="sks" id="ssum" style="margin:6px 0 10px"></div><button class="sb buyb" data-a="sellgo">Sotuvga qo'yish</button><button class="sb own" style="margin-top:8px" data-a="sellback">Orqaga</button>`;
+  const k=p2pKind,pd=((($('sd')||{}).value)||''),ps=((($('ss')||{}).value)||'');
+  const nm=k==='coin'?'tanga':'olmos',have=k==='coin'?s.coins:s.diamonds,min=k==='coin'?1000:10;
+  return head(k==='coin'?"Tanga sotuvga qo'yish":"Olmos sotuvga qo'yish",`Sizda ${fmt(have)} ${nm} bor`)+
+   `<input id="sd" type="number" inputmode="numeric" placeholder="Nechta ${nm} (kamida ${fmt(min)})" value="${pd}"><input id="ss" type="number" inputmode="numeric" placeholder="Necha Stars evaziga (1-5000)" value="${ps}"><div class="sks" id="ssum" style="margin:6px 0 10px"></div><button class="sb buyb" data-a="sellgo">Sotuvga qo'yish</button><button class="sb own" style="margin-top:8px" data-a="sellback">Orqaga</button>`;
 }
 function sellSum(){
+  const k=p2pKind,nm=k==='coin'?'tanga':'olmos',min=k==='coin'?1000:10;
   const d=Math.floor(+((($('sd')||{}).value)))||0,st=Math.floor(+((($('ss')||{}).value)))||0;
-  if($('ssum'))$('ssum').textContent=d>=10&&st>=1?`${fmt(d)} olmos ${fmt(st)} Stars ga sotiladi. Olmos darhol yechiladi, bekor qilsangiz qaytadi.`:'Olmos soni (kamida 10) va Stars narxini kiriting';
+  if($('ssum'))$('ssum').textContent=d>=min&&st>=1?`${fmt(d)} ${nm} ${fmt(st)} Stars ga sotiladi. ${k==='coin'?'Tanga':'Olmos'} darhol yechiladi, bekor qilsangiz qaytadi.`:`${k==='coin'?'Tanga':'Olmos'} soni (kamida ${fmt(min)}) va Stars narxini kiriting`;
 }
+$('auseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;auView=b.dataset.v;[...$('auseg').children].forEach(x=>x.classList.toggle('on',x===b));renderAuc();};
+$('p2pseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;p2pKind=b.dataset.k;[...$('p2pseg').children].forEach(x=>x.classList.toggle('on',x===b));renderP2P();};
+setInterval(()=>{if(fullEl&&fullEl.id==='p-p2p'&&modalMode!=='p2psell'&&!document.hidden)act('p2p');},10000);   // yangi takliflar o'zi paydo bo'ladi
 $('p2pfab').onclick=()=>openModal('p2psell');
 $('wdbtn').onclick=()=>{
   $('wdform').hidden=!$('wdform').hidden;
