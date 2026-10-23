@@ -60,16 +60,16 @@ Lokalda HTTPS uchun `ngrok http 3000` va chiqqan manzilni `WEBAPP_URL` ga yozing
 ## O'yin qoidalari
 - **Tap**: har bosishda coin = tanganing "x" ko'paytirgichi, energiya ham shuncha kamayadi (x5 bo'lsa 5 energiya).
   Energiya = kunlik limit (500–1200), har kuni (UTC) yangilanadi.
-- **Olmos**: do'kon uchun valyuta. 1 olmos = 10 coin (tepadagi "+"). Yangi foydalanuvchiga 100 olmos.
+- **Olmos**: do'kon uchun valyuta. Coinni olmosga aylantirib bo'lmaydi. Olmos Telegram Stars bilan sotib olinadi (tepadagi "+"), P2P bozorida olinadi yoki vazifa/reklamadan tushadi. Yangi foydalanuvchiga 100 olmos.
 - **Do'kon**: 9 ta tanga, oldingisini olmasangiz keyingisi yopiq. **Boost**: 20 olmosga energiya to'ladi.
 - **Vazifalar**: har birida "O'tish" (kanalga o'tadi) va "Tekshirish" (bot obunani tekshiradi) tugmalari.
 - **Reklama ("+")**: kanal va obunachi soni kiritiladi, **1 obunachi = 2 olmos** to'lanadi, obunachi **1 olmos** oladi.
   Bot kanalda **admin** bo'lishi shart.
 - **Profil**: 5 belgili kod (tahrirlanadi) orqali coin yuborish, promokod, admin panel (faqat `ADMIN_ID`).
-- Sozlamalar (`SKINS`, `EXCH`, `AD_COST` ...) `server.js` boshida; tanga ko'rinishi `public/index.html` dagi `SK` da, ikkalasi bir xil bo'lsin.
+- Sozlamalar (`SKINS`, `AD_COST` ...) `server.js` boshida; tanga ko'rinishi `public/index.html` dagi `SK` da, ikkalasi bir xil bo'lsin.
 
 ## Yangi: Boost xizmatlari, Stars to'lovi, profil
-- **Boost bo'limi** (pastki menyuda birinchi): Instagram, Telegram, YouTube, PUBG Mobile (TikTok: xizmat mavjud emas).
+- **Boost bo'limi** (pastki menyuda birinchi): Instagram, Telegram, YouTube, PUBG Mobile va TikTok hozircha "Coming soon".
   Foydalanuvchi xizmat tanlaydi, havola/username/ID kiritadi, paket sonini yozadi va **olmos** bilan to'laydi.
   Narxlar `server.js` dagi `SERVICES` va `public/index.html` dagi `SV` da (ikkalasi bir xil bo'lsin).
 - **Buyurtmalar qo'lda bajariladi**: buyurtma tushganda `ADMIN_ID` ga botdan xabar keladi, ostida **"Bajarildi"** va **"Rad etish"**
@@ -162,3 +162,27 @@ Balans va narxlar qisqartirilmay, aniq ko'rsatiladi (masalan 16 400). Ajratgichn
 ## Coming soon
 **PUBG Mobile** va **TikTok** xizmatlari hozircha "Coming soon" ko'rinishida (xira, bosilmaydi). Server ham PUBG buyurtmasini qabul qilmaydi.
 Yoqish uchun: `public/index.html` dagi `SV` ro'yxatida `off:true` ni olib tashlang va `server.js` dagi `SERVICES.pubg_uc` dan `soon: true` ni o'chiring.
+
+## Reyting: TANGA | OLMOS | REFERAL
+- Profil, Reyting: tepada uchta bo'lim, har birida **top 10** va foydalanuvchining o'z o'rni.
+- **Tanga** va **olmos** reytingi doimiy (hech qachon nolga qaytmaydi).
+- **Referal** reytingi **har 30 kunda 0 ga qaytadi** (hamma uchun bir vaqtda; 2025-yil 1-yanvardan 30 kunlik davrlar). Ekranda yangilanishgacha qolgan vaqt ko'rinadi.
+  Davr ichidagi takliflar `referrals` jadvalidagi sanalar bo'yicha hisoblanadi. Eski (bu yangilanishdan oldingi) takliflar sanasi saqlanmagani uchun referal reytingi nol bilan boshlanadi.
+  Umumiy taklif qilinganlar soni ("Do'stlar" bo'limida) o'zgarmaydi va nolga qaytmaydi.
+
+## Mening buyurtmalarim
+Boost sahifasidagi ro'yxat olib tashlandi. Endi **Profil** bo'limining eng oxirida "Mening buyurtmalarim" tugmasi bor, bossa alohida oyna ochiladi: har bir buyurtmada xizmat belgisi, nomi va miqdori, sanasi, olmos narxi va holati (Kutilmoqda, Bajarildi, Rad etildi). Oxirgi 30 ta buyurtma ko'rinadi.
+
+## Vazifalar: admin qo'shadigan vazifalar
+- Eski tizim vazifalari ("Kanalga obuna bo'ling", "3 ta do'st taklif qiling", "Do'konda 3 ta tanga oling") **olib tashlandi**.
+- **Admin panel, "Vazifa qo'shish"**: tur tanlanadi: **Kanal | Bot | Reklama video | Sayt havolasi**. Nomi, havola, mukofot (coin yoki olmos), ixtiyoriy kutish vaqti va limit (bo'sh = cheksiz) yoziladi. Qo'shilgan vazifa hamma foydalanuvchining Vazifalar bo'limida paydo bo'ladi. Admin ro'yxatdan "O'chirish" mumkin.
+- Foydalanuvchida har vazifada **"O'tish"** (havolani ochadi) va **"Tekshirish"** (mukofotni beradi) tugmalari bor. Har kim har vazifani faqat bir marta bajaradi.
+- **Tekshiruv turlari**: **Kanal** vazifasi serverda Telegram orqali **haqiqatan tekshiriladi** (bot o'sha kanalda admin bo'lishi shart, qo'shishda tekshiriladi).
+  **Bot, Reklama video va Sayt** vazifalarini Telegram tekshira olmaydi, shuning uchun ular **vaqt bo'yicha** ishlaydi: "O'tish" bosilgach admin belgilagan soniya (standart: bot va sayt 10, video 30) o'tmaguncha mukofot berilmaydi. Bu odam haqiqatan bajarganini isbotlamaydi.
+- Foydalanuvchilar o'z kanalini olmos bilan reklama qilish ("+" tugmasi) avvalgidek ishlaydi.
+
+## Promokod kanalga kelmasa
+- Kanal manzili `CHANNEL` o'zgaruvchisidan olinadi (Render, Environment). **Bo'sh bo'lsa, `@coinminer_team` ishlatiladi.** `kanal`, `@kanal` yoki `https://t.me/kanal` deb yozilsa ham to'g'ri o'qiladi.
+- Bot kanalda **admin** bo'lishi va **"Xabarlarni yuborish"** huquqiga ega bo'lishi shart (rasm yuborish uchun ham).
+- Promokod qo'shilganda **natija adminga ko'rsatiladi**: kanalga yuborilgan bo'lsa "Promokod qo'shildi va kanalga yuborildi", yuborilmagan bo'lsa sababi bilan ogohlantirish chiqadi (kanal topilmadi yoki bot huquqi yo'q).
+- Admin panelda promokodlar ro'yxati ostida **"Kanal ulanishini tekshirish"** tugmasi bor: kanalga hech narsa yubormasdan botning kanaldagi holatini va huquqini tekshiradi.
