@@ -186,6 +186,7 @@
   .seg button.on{background:#2f7bff;color:#fff}
   .bico{flex:none;display:block;border-radius:12px}
   .soon{margin-left:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:#fbbf24;letter-spacing:.4px;white-space:nowrap}
+  #ntseg button{font-size:12px;padding:10px 4px}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -322,6 +323,7 @@
     <input id="apmax" type="number" inputmode="numeric" placeholder="Limit: necha kishi ishlatadi (bo'sh = cheksiz)">
     <button class="primary" id="apadd">Promokod qo'shish</button>
     <div id="aplist" style="margin-top:8px"></div>
+    <button class="sb own" id="chcheck" style="margin-top:10px">Kanal ulanishini tekshirish</button>
     <div class="sub" style="margin-top:16px">O'zimga coin berish</div>
     <input id="agive" type="number" inputmode="numeric" placeholder="Miqdor">
     <button class="primary" id="agivebtn">Coin berish</button>
@@ -340,6 +342,16 @@
     <button class="primary" id="aadd">Joylash</button>
     <div class="sub" style="margin-top:14px">Faol auksionlar</div>
     <div id="aadmin"></div>
+    <div class="sub" style="margin-top:22px;font-weight:700">Vazifa qo'shish</div>
+    <div class="seg" id="ntseg"><button data-t="channel" class="on">Kanal</button><button data-t="bot">Bot</button><button data-t="video">Reklama video</button><button data-t="site">Sayt havolasi</button></div>
+    <input id="nttitle" placeholder="Vazifa nomi" maxlength="80">
+    <input id="ntlink" placeholder="@kanal_username (bot kanalda admin bo'lishi shart)" autocapitalize="off" autocomplete="off">
+    <div class="mrow"><input id="ntreward" type="number" inputmode="numeric" placeholder="Mukofot miqdori"><div class="seg" id="ntkind" style="margin:6px 0;min-width:150px"><button data-k="coin" class="on">Coin</button><button data-k="diamond">Olmos</button></div></div>
+    <input id="ntwait" type="number" inputmode="numeric" placeholder="Kutish vaqti (soniya)" hidden>
+    <input id="ntmax" type="number" inputmode="numeric" placeholder="Limit: necha kishi bajaradi (bo'sh = cheksiz)">
+    <button class="primary" id="ntadd">Vazifani qo'shish</button>
+    <div class="sub" style="margin-top:14px">Faol vazifalar</div>
+    <div id="ntlist"></div>
   </div>
 </section>
 
@@ -386,7 +398,8 @@ const IC={
  music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
  gavel:'<path d="m14.5 12.5-8 8a2.119 2.119 0 1 1-3-3l8-8"/><path d="m16 16 6-6"/><path d="m8 8 6-6"/><path d="m9 7 8 8"/><path d="m21 11-8-8"/>',
  swap:'<path d="m16 3 4 4-4 4"/><path d="M20 7H4"/><path d="m8 21-4-4 4-4"/><path d="M4 17h16"/>',
- back:'<path d="m15 18-6-6 6-6"/>'
+ back:'<path d="m15 18-6-6 6-6"/>',
+ globe:'<circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>'
 };
 const ic=(n,s=20)=>`<svg class="i" width="${s}" height="${s}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${IC[n]||''}</svg>`;
 const coin=(s=16)=>`<svg class="c" width="${s}" height="${s}" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10.5" fill="#f5b800" stroke="#c98a00" stroke-width="1.2"/><circle cx="12" cy="12" r="7.3" fill="none" stroke="#c98a00" stroke-width="1.4"/><path d="M13.9 9.3a3 3 0 1 0 0 5.4" fill="none" stroke="#c98a00" stroke-width="1.8" stroke-linecap="round"/></svg>`;
@@ -481,6 +494,18 @@ async function api(action,i,x){
       if(!(amt>ta))err='bid_low';else if(r.coins+(mine?ta:0)<amt)err='funds';
       else{r.coins=r.coins+(mine?ta:0)-amt;a.bids.push({name:'Siz',amount:amt,mine:true});}}}
   const auList=r.auc.map(a=>{const t=a.bids.length?a.bids[a.bids.length-1]:null;return{id:a.id,title:a.title,descr:a.descr,status:a.status,created:a.created,has_img:false,top:t?t.amount:0,top_name:t?t.name:null,cnt:a.bids.length,winner_name:a.winner||null,win_amount:a.win_amount||null,ends_at:a.ends_at||null};});
+  let waitLeft=0;
+  r.at=r.at||[{id:1,type:'channel',title:"Yangiliklar kanaliga obuna bo'ling",link:'@coinminer_team',reward:2000,reward_kind:'coin',wait:0,max:0,done:0},
+    {id:2,type:'bot',title:"Hamkor botni ishga tushiring",link:'https://t.me/coinmineruz_bot',reward:5,reward_kind:'diamond',wait:10,max:0,done:0},
+    {id:3,type:'video',title:"Reklama videoni ko'ring",link:'https://example.com/video',reward:500,reward_kind:'coin',wait:30,max:0,done:0},
+    {id:4,type:'site',title:'Saytga kiring',link:'https://example.com',reward:300,reward_kind:'coin',wait:10,max:0,done:0}];
+  r.atp=r.atp||{};
+  if(action==='task_go'){const t=r.at.find(z=>z.id===i);if(!t)err='task_gone';else if(!r.atp[i])r.atp[i]={started:Date.now(),done:false};}
+  if(action==='task_check'){const t=r.at.find(z=>z.id===i),pr=r.atp[i];
+    if(!t)err='task_gone';else if(pr&&pr.done)err='claimed';
+    else if(t.type!=='channel'&&!pr)err='task_first';
+    else if(t.type!=='channel'&&Date.now()-pr.started<t.wait*1000){err='task_wait';waitLeft=Math.ceil((t.wait*1000-(Date.now()-pr.started))/1000);}
+    else{if(t.reward_kind==='diamond')r.diamonds+=t.reward;else r.coins+=t.reward;r.atp[i]={started:pr?pr.started:Date.now(),done:true};}}
   r.orders=r.orders||[];
   if(action==='order'){const it=SVI[x.svc],qty=Math.floor(+x.qty),cnt=(it&&qty>0&&qty%it.q===0)?qty/it.q:0,tgt=String(x.target||'').trim();
     if(!it)err='gone';else if(it.soon)err='soon';else if(tgt.length<3||tgt.length>200)err='bad_target';else if(!(cnt>=1&&cnt<=100))err='bad_count';else if(r.diamonds<it.p*cnt)err='diamonds';
@@ -491,8 +516,6 @@ async function api(action,i,x){
   if(action==='select'){if(r.skins.includes(i))r.skin=i;else err='locked';}
   if(action==='refill'){if(r.diamonds<REFILL)err='diamonds';else{r.diamonds-=REFILL;r.taps=0;}}
   if(action==='bonus'&&now-r.bonusAt>=DAY){r.streak=now-r.bonusAt<2*DAY?r.streak+1:1;r.coins+=BONUS*Math.min(r.streak,7);r.bonusAt=now;}
-  if(action==='task'){const T=TASKS.find(x=>x.id===i);
-    if(T&&!r.tasks.includes(T.id)&&(T.id==='channel'||(T.id==='level10'&&r.skins.length>=3))){r.coins+=T.r;r.tasks.push(T.id);}}
   r.ads=r.ads||[{id:1,channel:'@uz_texnologiya',need:200,done:41,price:1,owner:1},{id:2,channel:'@kino_olami',need:500,done:120,price:1,owner:1}];
   r.claims=r.claims||[];
   if(action==='ad_add'){const need=Math.floor(+x.need),ch=String(x.channel||'').trim().replace(/^@?/,'@');
@@ -520,6 +543,7 @@ async function api(action,i,x){
   const out={...r,refs:0,me:0,bot:'sizning_botingiz',channel:'',err,ads:r.ads.filter(z=>z.owner!==0&&z.done<z.need&&!r.claims.includes(z.id)),myAds:r.ads.filter(z=>z.owner===0),admin:false};
   out.auctions=auList;
   Object.assign(out,p2pOut,{starsBal:r.starsBal});
+  out.atasks=r.at.filter(t=>!(r.atp[t.id]&&r.atp[t.id].done)).map(t=>({...t,started:r.atp[t.id]?r.atp[t.id].started:null}));out.waitLeft=waitLeft;
   if(action==='auction'||action==='bid'){const a=r.auc.find(z=>z.id===i);out.aid=i;out.bids=a?[...a.bids].reverse().map(b=>({name:b.name,amount:b.amount,mine:!!b.mine})):[];}
   if(action==='load')out.offline=offline;
   if(action==='top'){
@@ -535,7 +559,7 @@ async function api(action,i,x){
 }
 
 let s=null;
-const set=d=>{if(d.srvNow)skew=d.srvNow-Date.now();const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),starsBal:d.starsBal!==undefined?d.starsBal:(s?s.starsBal:0),offers:d.offers!==undefined?d.offers:(s?s.offers:[]),myOffers:d.myOffers!==undefined?d.myOffers:(s?s.myOffers:[]),t:Date.now()}};
+const set=d=>{if(d.srvNow)skew=d.srvNow-Date.now();const m=SK[d.skin||0].m;s={coins:d.coins+pend*m,diamonds:d.diamonds||0,skins:d.skins||[0],skin:d.skin||0,taps:d.taps||0,bonusAt:d.bonusAt,streak:d.streak||0,refs:d.refs||0,me:d.me,bot:d.bot,tasks:d.tasks||[],channel:d.channel||'',ads:d.ads||[],myAds:d.myAds||[],code:d.code||'',admin:!!d.admin,promos:d.promos||[],orders:d.orders||[],codeLocked:!!d.codeLocked,auctions:d.auctions!==undefined?d.auctions:(s?s.auctions:[]),bids:d.bids!==undefined?d.bids:(s?s.bids:[]),aid:d.aid!==undefined?d.aid:(s?s.aid:0),starsBal:d.starsBal!==undefined?d.starsBal:(s?s.starsBal:0),atasks:d.atasks!==undefined?d.atasks:(s?s.atasks:[]),adminTasks:d.adminTasks!==undefined?d.adminTasks:(s?s.adminTasks:[]),waitLeft:d.waitLeft||0,offers:d.offers!==undefined?d.offers:(s?s.offers:[]),myOffers:d.myOffers!==undefined?d.myOffers:(s?s.myOffers:[]),t:Date.now()}};
 const live=()=>s.coins;
 function toast(m){const t=$('toast');t.textContent=m;t.classList.add('show');clearTimeout(toast.h);toast.h=setTimeout(()=>t.classList.remove('show'),2800)}
 
@@ -634,7 +658,7 @@ $('mbody').onclick=e=>{
 async function act(action,i,x){
   try{
     const d=await api(action,i,x);set(d);
-    if(d.err)toast(errMsg(d.err));
+    if(d.err)toast(d.err==='task_wait'&&d.waitLeft?`Hali erta: yana ${d.waitLeft} soniya kuting`:errMsg(d.err));
     else if(action==='ad_add'){closeForm();toast("Vazifa qo'shildi");}
     else if(action==='ad_check')toast('Mukofot: +1 olmos');
     else if(action==='p2p_create'){toast("Olmos sotuvga qo'yildi");closeModal();}
@@ -648,11 +672,19 @@ async function act(action,i,x){
     else if(action==='buy')toast('Tanga sotib olindi va tanlandi');
     else if(action==='select')toast('Tanga tanlandi');
     else if(action==='refill')toast("Energiya to'ldirildi");
+    else if(action==='task_check')toast('Mukofot olindi');
+    else if(action==='admin_task_add'){toast("Vazifa qo'shildi");['nttitle','ntlink','ntreward','ntmax'].forEach(id=>$(id).value='');}
+    else if(action==='admin_task_del')toast("Vazifa o'chirildi");
     else if(action==='code_set')toast('Kod saqlandi');
     else if(action==='send'){toast('Coin yuborildi');$('sendamt').value='';}
     else if(action==='promo'){toast('Promokod faollashtirildi');$('promoin').value='';}
     else if(action==='admin_promo_del')toast("Promokod o'chirildi");
-    else if(action==='admin_promo'){toast("Promokod qo'shildi");['apcode','aprew','apmax'].forEach(id=>$(id).value='');}
+    else if(action==='admin_promo'){
+      ['apcode','aprew','apmax'].forEach(id=>$(id).value='');
+      if(d.channelOk===false){const m=`Promokod qo'shildi, lekin kanalga yuborilmadi: ${d.channelErr||"noma'lum xato"}`;(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
+      else toast("Promokod qo'shildi va kanalga yuborildi");
+    }
+    else if(action==='admin_channel_check'){const m=(d.chStatus&&d.chStatus.text)||"Javob kelmadi";(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
     else if(action==='admin_give'){toast('Coin berildi');$('agive').value='';}
     else if(action==='admin_take'){toast("Coin olib qo'yildi");['atcode','atamt'].forEach(id=>$(id).value='');}
     else if(action==='admin_reset')toast("Hammaning coini 0 qilindi");
@@ -663,13 +695,12 @@ async function act(action,i,x){
       if(st==='paid'){toast("To'lov qabul qilindi, balans yangilanmoqda");const rf=action==='p2p_buy'?'p2p':'profile';setTimeout(()=>act(rf),1500);setTimeout(()=>act(rf),5000);}
       else if(st==='failed')toast("To'lov amalga oshmadi");
     });
-    if(action==='task'){const T=TASKS.find(x=>x.id===i);toast(s.tasks.includes(i)?'+'+fmt(T.r)+' coin':'Shart hali bajarilmagan');renderTasks();}
   }catch(e){toast(e.message||'Xato')}
   if(!$('v-tk').hidden)renderTasks();
   if(!$('v-pf').hidden)renderProfile();
   if(!$('v-bs').hidden)renderBoost();
   if(!$('v-au').hidden)renderAuc();
-  if(movedEl&&movedEl.id==='p-admin'){renderAdminAuc();renderAdminPromos();}
+  if(movedEl&&movedEl.id==='p-admin'){renderAdminAuc();renderAdminPromos();renderAdminTasks();}
   if(fullEl&&fullEl.id==='p-p2p')renderP2P();
   if(movedEl&&movedEl.id==='p-orders')renderOrders();
   if(modalMode)drawModal();
@@ -708,12 +739,7 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 });
 $('bonus').onclick=()=>act('bonus');
 
-const TASKS=[
-  {id:'channel',e:'send',n:"Kanalga obuna bo'ling",r:2000},
-  {id:'friends3',e:'users',n:"3 ta do'st taklif qiling",r:3000},
-  {id:'level10',e:'layers',n:"Do'konda 3 ta tanga oling",r:1500}
-];
-const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",soon:"Bu xizmat tez orada qo'shiladi (Coming soon)",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
+const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",task_gone:"Vazifa tugagan yoki mavjud emas",task_first:"Avval \"O'tish\" tugmasini bosing",bad_task:"Vazifa ma'lumotlari noto'g'ri: nom, havola yoki mukofotni tekshiring",soon:"Bu xizmat tez orada qo'shiladi (Coming soon)",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
 function taskBtns(d,done,goFn,checkFn){
   const w=document.createElement('div');w.className='acts';
   if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
@@ -761,16 +787,60 @@ function adUpdate(){
 $('plus').onclick=()=>{$('adform').hidden=!$('adform').hidden;adUpdate();};
 $('adpay').onclick=()=>{const c=adCheck();if(c.msg){toast(c.msg);adUpdate();return;}act('ad_add',null,{channel:c.v.ch,need:c.v.need});};
 function closeForm(){$('adform').hidden=true;['adch','adneed'].forEach(id=>$(id).value='');}
+const TT={channel:['send','Kanal'],bot:['bot','Bot'],video:['play','Reklama video'],site:['globe','Sayt']};
+function taskLeft(t){return t.started?Math.max(0,Math.ceil((t.wait*1000-(nowS()-t.started))/1000)):null;}
+function openTaskLink(t){
+  const u=t.type==='channel'?'https://t.me/'+t.link.replace('@',''):t.link;
+  if(/^https:\/\/t\.me\//.test(u)&&online&&tg.openTelegramLink)tg.openTelegramLink(u);
+  else if(online&&tg.openLink)tg.openLink(u);
+  else{try{window.open(u,'_blank')}catch(e){}}
+}
 function renderTasks(){
   if(!s)return;
   $('tasks').innerHTML='';renderAds();
-  TASKS.forEach(T=>{
-    const done=s.tasks.includes(T.id),d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico">${ic(T.e,24)}</div><div class="info"><div class="nm">${T.n}</div><div class="sub">Mukofot: +${fmt(T.r)} ${coin(14)}</div></div>`;
-    taskBtns(d,done,T.id==='channel'?()=>openCh(s.channel):null,()=>act('task',T.id));
+  (s.atasks||[]).forEach(t=>{
+    const d=document.createElement('div');d.className='card';
+    const left=t.type==='channel'?null:taskLeft(t),rw=`+${fmt(t.reward)} ${t.reward_kind==='diamond'?dia(14):coin(14)}`;
+    const extra=[t.max>0?`qoldi ${t.max-t.done}`:'',left===null?'':left>0?`kuting ${left} s`:'tayyor'].filter(Boolean).join(' · ');
+    d.innerHTML=`<div class="ico">${ic(TT[t.type][0],24)}</div><div class="info"><div class="nm"></div><div class="sub">${TT[t.type][1]} · Mukofot: ${rw}${extra?' · '+extra:''}</div></div>`;
+    d.querySelector('.nm').textContent=t.title;
+    taskBtns(d,false,()=>{openTaskLink(t);if(t.type!=='channel')act('task_go',t.id);},()=>act('task_check',t.id));
     $('tasks').appendChild(d);
   });
 }
+setInterval(()=>{if(!s||$('v-tk').hidden)return;if((s.atasks||[]).some(t=>t.type!=='channel'&&t.started&&taskLeft(t)>0))renderTasks();},1000);
+let ntType='channel',ntKind='coin';
+const NT_PH={channel:"@kanal_username (bot kanalda admin bo'lishi shart)",bot:'@bot_username yoki https://t.me/bot?start=...',video:'Video havolasi (https://...)',site:'Sayt havolasi (https://...)'};
+function ntUpdate(){
+  $('ntlink').placeholder=NT_PH[ntType];
+  $('ntwait').hidden=ntType==='channel';
+  if(ntType!=='channel'&&!$('ntwait').value)$('ntwait').value=ntType==='video'?30:10;
+}
+$('ntseg').onclick=e=>{const b=e.target.closest('button');if(!b)return;ntType=b.dataset.t;[...$('ntseg').children].forEach(x=>x.classList.toggle('on',x===b));$('ntwait').value='';ntUpdate();};
+$('ntkind').onclick=e=>{const b=e.target.closest('button');if(!b)return;ntKind=b.dataset.k;[...$('ntkind').children].forEach(x=>x.classList.toggle('on',x===b));};
+$('ntadd').onclick=()=>{
+  const title=$('nttitle').value.trim(),link=$('ntlink').value.trim(),reward=Math.floor(+$('ntreward').value);
+  if(title.length<2){toast('Vazifa nomini yozing');return;}
+  if(!link){toast('Havolani yozing');return;}
+  if(!(reward>=1)){toast('Mukofot miqdorini yozing');return;}
+  act('admin_task_add',null,{type:ntType,title,link,reward,kind:ntKind,wait:ntType==='channel'?0:Math.floor(+$('ntwait').value)||0,max:$('ntmax').value});
+};
+$('chcheck').onclick=()=>act('admin_channel_check');
+function renderAdminTasks(){
+  const L=$('ntlist');if(!L||!s)return;
+  L.innerHTML='';
+  const list=s.adminTasks||[];
+  if(!list.length){L.innerHTML='<div class="sub">Faol vazifa yo\'q</div>';return;}
+  list.forEach(t=>{
+    const r=document.createElement('div');r.className='row';
+    r.innerHTML=`<span><b></b><br><small style="color:var(--muted)">${TT[t.type][1]} · +${fmt(t.reward)} ${t.reward_kind==='diamond'?'olmos':'coin'} · bajarilgan ${t.done}/${t.max>0?t.max:'cheksiz'}</small></span><button class="buy" style="background:#ef4444">O'chirish</button>`;
+    r.querySelector('b').textContent=t.title;
+    r.querySelector('button').onclick=()=>ask(`"${t.title}" vazifasini o'chirasizmi?`,()=>act('admin_task_del',t.id));
+    L.appendChild(r);
+  });
+}
+ntUpdate();
+
 function renderProfile(){
   if(!s)return;
   if(s.codeLocked||document.activeElement!==$('mycode'))$('mycode').value=s.code;
@@ -807,7 +877,7 @@ document.querySelectorAll('[data-p]').forEach(b=>b.onclick=()=>{
   if(k==='top')act('top',null,{kind:topKind});
   if(k==='fr')showFriends();
   if(k==='buy')starUpdate();
-  if(k==='admin')act('auctions');
+  if(k==='admin'){act('auctions');act('tasks');}
   if(k==='orders'){renderOrders();act('boost');}
   if(k==='p2p')act('p2p');
 });
