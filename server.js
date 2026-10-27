@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import express from 'express';
 import crypto from 'crypto';
+import https from 'https';
 import pg from 'pg';
 import { Telegraf, Markup } from 'telegraf';
 
@@ -126,6 +127,13 @@ app.disable('x-powered-by');
 app.use(express.json({ limit: '1mb' }));   // auksion rasmi uchun (rasm 600 KB gacha)
 app.use(express.static('public'));
 app.get('/healthz', (req, res) => res.send('ok'));
+// Promokod rasmi vaqtincha shu manzildan beriladi (Telegram rasmni o'zi yuklab oladi, serverdan yuklash shart emas)
+const promoImgs = new Map();
+app.get('/promo-img/:file', (req, res) => {
+  const it = promoImgs.get(String(req.params.file).replace(/\.(jpg|png)$/, ''));
+  if (!it) return res.status(404).end();
+  res.set('Content-Type', it.mime).set('Cache-Control', 'no-store').send(it.buf);
+});
 // Auksion rasmlari bazadan beriladi (brauzer keshlaydi)
 app.get('/img/:id', async (req, res) => {
   try {
@@ -508,7 +516,7 @@ app.post('/api/act', async (req, res) => {
     await c.query('COMMIT');
     if (promoPost) {                       // kanalga yuborilganini kutamiz, natija adminga ko'rsatiladi
       const pr = await postPromo(promoPost);
-      out.channelOk = pr.ok; out.channelErr = pr.error || null;
+      out.channelOk = pr.ok; out.channelErr = pr.error || null; out.channelMode = pr.mode || null;
     }
     res.json(out);
     if (notify) bot.telegram.sendMessage(notify[0], notify[1]).catch(() => {});
@@ -535,7 +543,19 @@ app.post('/api/act', async (req, res) => {
   }
 });
 
-const bot = new Telegraf(BOT_TOKEN);
+// keepAlive o'chiriladi: Node 19+ da eski ulanish qayta ishlatilganda "socket hang up" xatosi chiqardi
+const bot = new Telegraf(BOT_TOKEN, { telegram: { agent: new https.Agent({ keepAlive: false }) } });
+// /start xabari: butun matn iqtibos (blockquote) ichida chiqadi
+const START_TEXT = `<blockquote>🔥 O‘ynang, Coin yig‘ing va Auksionda haqiqiy sovrinlar yuting! 🎁
+
+💡 Sizni nimalar kutmoqda?
+
+🪙 Coin yig‘ing — topshiriqlarni bajaring va balansingizni oshiring.
+
+🏆 Auksionda qatnashib, qimmatbaho buyumlar va sovrinlarni yutib oling!
+👥 Do‘stlaringizni chorlang va har bir taklif qilingan do‘stingiz uchun darhol 1000 Coin bonusga ega bo‘ling! 💰
+Bizni kuzatib boring:
+👉 @coinminer_team 👥</blockquote>`;
 bot.start(async (ctx) => {
   const ref = Number(String(ctx.payload || '').replace('ref_', '')), id = ctx.from.id;
   try {
@@ -549,8 +569,7 @@ bot.start(async (ctx) => {
       }
     }
   } catch (e) { console.error('referal xatosi:', e.message); }
-  ctx.reply('Coin Mine ga xush kelibsiz! Tangani bosib coin yig\'ing.\n\nYangiliklar @coinminer_team kanalida',
-    Markup.inlineKeyboard([Markup.button.webApp('O\'ynash', WEBAPP_URL)]));
+  ctx.reply(START_TEXT, { parse_mode: 'HTML', ...Markup.inlineKeyboard([Markup.button.webApp("O'ynash", WEBAPP_URL)]) });
 });
 bot.command('stats', async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return;
@@ -574,7 +593,8 @@ async function postWinner(auId, title, top) {
 }
 // Promokod posti: "+N coin", holat (FAOL/TUGAGAN) va limit (necha kishi, qolgani yoki cheksiz)
 function explainTgError(m) {
-  m = String(m || '');
+  m = String(m || '').replace(/bot\d+:[A-Za-z0-9_\-\[\]]+/g, 'bot***');   // token xabarga tushib qolmasin
+  if (/socket hang up|ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed|network|timeout/i.test(m)) return "Telegram bilan aloqa uzildi (tarmoq xatosi), birozdan keyin qayta urinib ko'ring";
   if (/chat not found/i.test(m)) return "kanal topilmadi: Render'dagi CHANNEL qiymatini (@kanal_username) tekshiring va botni kanalga qo'shing";
   if (/not enough rights|CHAT_ADMIN_REQUIRED|have no rights|not a member|Forbidden|can't send|administrator/i.test(m)) return "botda kanalga yozish huquqi yo'q: botni kanalga admin qiling (\"Xabarlarni yuborish\" yoqilgan bo'lsin)";
   return 'Telegram xatosi: ' + m;
@@ -592,21 +612,42 @@ const promoCaption = (p) => {
   const left = p.max > 0 ? Math.max(0, p.max - p.used) : null;
   return `🎁 +${p.reward} 🪙\n\n${left === 0 ? '🔴 TUGAGAN' : '🟢 FAOL'}\n\n` + (p.max > 0 ? `👥 Limit: ${p.max} kishi. Qoldi: ${left}.` : '♾ Limit cheksiz.');
 };
-async function postPromo({ code, reward, max, image }) {
-  const m = /^data:image\/(?:jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(String(image || ''));
-  const buf = m ? Buffer.from(m[1], 'base64') : null;
-  const hasImg = Boolean(buf && buf.length <= 900 * 1024);
-  const text = promoCaption({ reward, max, used: 0 }) + (hasImg ? '' : `\n\nPromokod: ${code}`);   // rasm bo'lmasa, kod matnda ko'rinadi
-  try {
-    const msg = hasImg
-      ? await bot.telegram.sendPhoto(CHANNEL, { source: buf }, { caption: text })
-      : await bot.telegram.sendMessage(CHANNEL, text);
-    await pool.query('UPDATE promos SET msg_id=$1 WHERE code=$2', [msg.message_id, code]);
-    return { ok: true };
-  } catch (e) {
-    console.error("Promokod postini yuborib bo'lmadi:", e.message);
-    return { ok: false, error: explainTgError(e.message) };
+const TG_RETRY_MS = 800;
+async function tgRetry(fn, tries = 3) {     // tarmoq uzilishida (socket hang up va h.k.) qayta urinadi
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try { return await fn(); } catch (e) {
+      last = e;
+      if (!/socket hang up|ECONNRESET|ETIMEDOUT|EAI_AGAIN|fetch failed|network|timeout/i.test(String(e.message))) throw e;
+      await new Promise((r) => setTimeout(r, TG_RETRY_MS * (i + 1)));
+    }
   }
+  throw last;
+}
+async function postPromo({ code, reward, max, image }) {
+  const m = /^data:image\/(jpeg|png);base64,([A-Za-z0-9+/=]+)$/.exec(String(image || ''));
+  const buf = m ? Buffer.from(m[2], 'base64') : null;
+  const hasImg = Boolean(buf && buf.length <= 900 * 1024);
+  const caption = promoCaption({ reward, max, used: 0 });
+  let msg = null, mode = 'text', lastErr = null;
+  if (hasImg) {
+    const mime = m[1] === 'png' ? 'image/png' : 'image/jpeg', tok = crypto.randomBytes(12).toString('hex');
+    promoImgs.set(tok, { buf, mime }); setTimeout(() => promoImgs.delete(tok), 10 * 60 * 1000);
+    try {          // 1) havola orqali: Telegram rasmni bizning serverdan o'zi oladi
+      msg = await tgRetry(() => bot.telegram.sendPhoto(CHANNEL, `${String(WEBAPP_URL).replace(/\/$/, '')}/promo-img/${tok}.${m[1] === 'png' ? 'png' : 'jpg'}`, { caption }));
+      mode = 'photo-url';
+    } catch (e) { lastErr = e; console.error("Promokod rasmi (havola) yuborilmadi:", e.message); }
+    if (!msg) {    // 2) rasmni to'g'ridan-to'g'ri yuklash
+      try { msg = await tgRetry(() => bot.telegram.sendPhoto(CHANNEL, { source: buf }, { caption })); mode = 'photo'; }
+      catch (e) { lastErr = e; console.error("Promokod rasmi (yuklash) yuborilmadi:", e.message); }
+    }
+  }
+  if (!msg) {      // 3) oxirgi chora: matn (promokod matnda ko'rinadi)
+    try { msg = await tgRetry(() => bot.telegram.sendMessage(CHANNEL, `${caption}\n\nPromokod: ${code}`)); mode = 'text'; }
+    catch (e) { console.error("Promokod postini yuborib bo'lmadi:", e.message); return { ok: false, error: explainTgError(e.message || (lastErr && lastErr.message)) }; }
+  }
+  await pool.query('UPDATE promos SET msg_id=$1 WHERE code=$2', [msg.message_id, code]).catch(() => {});
+  return { ok: true, mode };
 }
 const promoTimers = new Map();
 function schedulePromoPost(code) {     // ketma-ket ishlatilsa, tahrirlar 5 soniyada bir marta birlashtiriladi
