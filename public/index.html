@@ -682,6 +682,7 @@ async function act(action,i,x){
     else if(action==='admin_promo'){
       ['apcode','aprew','apmax'].forEach(id=>$(id).value='');
       if(d.channelOk===false){const m=`Promokod qo'shildi, lekin kanalga yuborilmadi: ${d.channelErr||"noma'lum xato"}`;(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
+      else if(d.channelMode==='text')toast("Promokod kanalga yuborildi, lekin rasm yuborilmadi (matn bilan chiqdi)");
       else toast("Promokod qo'shildi va kanalga yuborildi");
     }
     else if(action==='admin_channel_check'){const m=(d.chStatus&&d.chStatus.text)||"Javob kelmadi";(tg&&tg.showAlert?tg.showAlert(m):toast(m));}
