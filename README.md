@@ -186,3 +186,13 @@ Boost sahifasidagi ro'yxat olib tashlandi. Endi **Profil** bo'limining eng oxiri
 - Bot kanalda **admin** bo'lishi va **"Xabarlarni yuborish"** huquqiga ega bo'lishi shart (rasm yuborish uchun ham).
 - Promokod qo'shilganda **natija adminga ko'rsatiladi**: kanalga yuborilgan bo'lsa "Promokod qo'shildi va kanalga yuborildi", yuborilmagan bo'lsa sababi bilan ogohlantirish chiqadi (kanal topilmadi yoki bot huquqi yo'q).
 - Admin panelda promokodlar ro'yxati ostida **"Kanal ulanishini tekshirish"** tugmasi bor: kanalga hech narsa yubormasdan botning kanaldagi holatini va huquqini tekshiradi.
+
+## "socket hang up" xatosi (promokod rasmi kanalga bormaganda)
+- Sabab: Node 19+ da Telegram'ga ochiq turgan eski ulanish qayta ishlatilib, rasm yuklash paytida uzilib qolardi. Endi Telegram so'rovlari yangi ulanish bilan (keep-alive o'chiq) yuboriladi va tarmoq xatosida **3 martagacha qayta uriniladi**.
+- Promokod posti endi 3 bosqichda yuboriladi: 1) rasm **havola orqali** (Telegram rasmni o'zi bizning serverdan oladi), 2) rasmni **to'g'ridan-to'g'ri yuklash**, 3) bo'lmasa **matn** (promokod matnda yoziladi). Shuning uchun post har holda kanalga chiqadi.
+- Xato xabarlarida bot tokeni yashiriladi.
+
+## /start xabari: rasm bilan
+- `/start` bosilganda bot **rasm** (`public/start.jpg`) yuboradi, rasm ostida iqtibosli (blockquote) matn va **"O'ynash"** tugmasi turadi.
+- Rasm 3 bosqichda yuboriladi: 1) havola orqali (`https://SIZNING-SERVIS/start.jpg`, Telegram o'zi oladi), 2) to'g'ridan-to'g'ri yuklash, 3) bo'lmasa faqat matn. Birinchi muvaffaqiyatli yuborishdan keyin Telegram `file_id` si eslab qolinadi va keyingi `/start` lar tezroq ishlaydi.
+- Rasmni almashtirish uchun `public/start.jpg` faylini boshqasiga almashtiring (nomi o'zgarmasin). Matnni o'zgartirish: `server.js` dagi `START_TEXT`. Rasm tagidagi matn 1024 belgidan oshmasligi kerak.

@@ -2,8 +2,12 @@ import 'dotenv/config';
 import express from 'express';
 import crypto from 'crypto';
 import https from 'https';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import pg from 'pg';
 import { Telegraf, Markup } from 'telegraf';
+
+const __dir = path.dirname(fileURLToPath(import.meta.url));
 
 const { BOT_TOKEN, CHANNEL: CHANNEL_RAW = '', ADMIN_ID = '', PORT = 3000, DATABASE_URL } = process.env;
 // Kanal manzili: bo'sh bo'lsa yangiliklar kanali ishlatiladi; "https://t.me/kanal" yoki "kanal" yozilsa ham "@kanal" ga o'tkaziladi
@@ -556,6 +560,24 @@ const START_TEXT = `<blockquote>🔥 O‘ynang, Coin yig‘ing va Auksionda haqi
 👥 Do‘stlaringizni chorlang va har bir taklif qilingan do‘stingiz uchun darhol 1000 Coin bonusga ega bo‘ling! 💰
 Bizni kuzatib boring:
 👉 @coinminer_team 👥</blockquote>`;
+// /start: rasm + iqtibosli matn + "O'ynash" tugmasi. Rasm avval havola orqali (public/start.jpg), keyin yuklab, oxirida faqat matn sifatida yuboriladi
+let START_PHOTO_ID = null;     // birinchi muvaffaqiyatli yuborishdan keyin Telegram file_id saqlanadi (keyingilari tez ketadi)
+async function sendStart(ctx) {
+  const extra = { caption: START_TEXT, parse_mode: 'HTML', ...Markup.inlineKeyboard([Markup.button.webApp("O'ynash", WEBAPP_URL)]) };
+  const tries = [];
+  if (START_PHOTO_ID) tries.push(() => ctx.replyWithPhoto(START_PHOTO_ID, extra));
+  tries.push(() => ctx.replyWithPhoto(`${String(WEBAPP_URL).replace(/\/$/, '')}/start.jpg`, extra));
+  tries.push(() => ctx.replyWithPhoto({ source: path.join(__dir, 'public', 'start.jpg') }, extra));
+  for (const t of tries) {
+    try {
+      const m = await tgRetry(t);
+      const ph = m && m.photo && m.photo[m.photo.length - 1];
+      if (ph) START_PHOTO_ID = ph.file_id;
+      return;
+    } catch (e) { console.error('/start rasmi yuborilmadi:', e.message); START_PHOTO_ID = null; }
+  }
+  await ctx.reply(START_TEXT, { parse_mode: 'HTML', ...Markup.inlineKeyboard([Markup.button.webApp("O'ynash", WEBAPP_URL)]) });
+}
 bot.start(async (ctx) => {
   const ref = Number(String(ctx.payload || '').replace('ref_', '')), id = ctx.from.id;
   try {
@@ -569,7 +591,7 @@ bot.start(async (ctx) => {
       }
     }
   } catch (e) { console.error('referal xatosi:', e.message); }
-  ctx.reply(START_TEXT, { parse_mode: 'HTML', ...Markup.inlineKeyboard([Markup.button.webApp("O'ynash", WEBAPP_URL)]) });
+  await sendStart(ctx);
 });
 bot.command('stats', async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return;
