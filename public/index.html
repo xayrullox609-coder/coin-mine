@@ -187,6 +187,15 @@
   .bico{flex:none;display:block;border-radius:12px}
   .soon{margin-left:auto;font-size:11px;font-weight:800;padding:5px 10px;border-radius:999px;background:rgba(255,255,255,.12);color:#fbbf24;letter-spacing:.4px;white-space:nowrap}
   #ntseg button{font-size:12px;padding:10px 4px}
+  .tk{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:22px;background:var(--card);border:1px solid var(--line);margin-bottom:10px}
+  .tk .tic{width:50px;height:50px;border-radius:16px;display:flex;align-items:center;justify-content:center;flex:none}
+  .tk .tin{flex:1;min-width:0}
+  .tk .tnm{font-weight:800;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tk .tsb{font-size:13px;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tk .tpill{display:flex;align-items:center;gap:4px;padding:5px 10px;border:1.5px solid #34d399;border-radius:999px;color:#34d399;font-weight:800;font-size:13px;flex:none;background:rgba(52,211,153,.08)}
+  .tk .tbtn{padding:11px 16px;border-radius:999px;background:linear-gradient(135deg,#fb7185,#e11d48);color:#fff;font-weight:800;font-size:14px;flex:none;box-shadow:0 4px 14px rgba(225,29,72,.35)}
+  .tk .tbtn.chk{background:linear-gradient(135deg,#34d399,#059669);box-shadow:0 4px 14px rgba(5,150,105,.35)}
+  .tk .tbtn:disabled{opacity:.55;box-shadow:none}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -741,23 +750,21 @@ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
 $('bonus').onclick=()=>act('bonus');
 
 const errMsg=c=>({limits:"Obunachi soni 5 dan 10 000 gacha bo'lsin",not_admin:"Avval @"+s.bot+" botni kanalga admin qiling",funds:"Coin yetarli emas",gone:"Vazifa tugagan yoki mavjud emas",claimed:"Allaqachon olingan",forbidden:"Ruxsat yo'q: bu bo'lim faqat admin uchun",task_gone:"Vazifa tugagan yoki mavjud emas",task_first:"Avval \"O'tish\" tugmasini bosing",bad_task:"Vazifa ma'lumotlari noto'g'ri: nom, havola yoki mukofotni tekshiring",soon:"Bu xizmat tez orada qo'shiladi (Coming soon)",p2p_gone:"Taklif endi mavjud emas",p2p_own:"O'z taklifingizni sotib ola olmaysiz",p2p_bad:"Kamida 10 olmos (tanga uchun 1 000), narx 1 dan 5000 Stars gacha bo'lsin",p2p_many:"Bir vaqtda 5 tadan ko'p taklif qo'ya olmaysiz",p2p_busy:"Taklif hozir to'lov jarayonida, birozdan keyin urinib ko'ring",wd_min:"Kamida 50 Stars yechish mumkin",wd_funds:"Stars hamyonda yetarli mablag' yo'q",wd_note:"Telegram username (@username) yoki raqamli ID yozing",auction_gone:"Auksion tugagan yoki mavjud emas",bid_low:"Tikish oldingisidan ko'p bo'lishi kerak",bad_auction:"Nomi 2–80 belgi, tavsif 600 belgigacha bo'lsin",bad_hours:"Davomiylik 1 dan 720 soatgacha bo'lsin",bad_image:"Rasm noto'g'ri yoki juda katta",demo_pay:"To'lov faqat Telegramdagi botda ishlaydi",pay_fail:"To'lov havolasini yaratib bo'lmadi",bad_target:"Havola, username yoki ID kiriting (3 dan 200 belgigacha)",bad_count:"Miqdor paket hajmining ko'paytmasi bo'lishi kerak (eng ko'pi 100 paket)",locked:"Avval oldingi tangani sotib oling",diamonds:"Olmos yetarli emas",bad_amount:"Miqdorni to'g'ri kiriting",code_locked:"Kodni faqat 1 marta o'zgartirish mumkin, siz allaqachon o'zgartirgansiz",code_same:"Bu sizning hozirgi kodingiz",code_bad:"Kod 5 ta harf yoki raqamdan iborat bo'lsin",code_taken:"Bu kod band yoki avval ishlatilgan, boshqasini tanlang",send_none:"Bunday kodli foydalanuvchi topilmadi",send_self:"O'zingizga yubora olmaysiz",send_min:"Kamida 10 coin yuboring",promo_none:"Promokod topilmadi",promo_used:"Bu promokodni allaqachon ishlatgansiz",promo_end:"Promokod tugagan",promo_exists:"Bunday promokod allaqachon bor",not_member:"Siz hali obuna bo'lmagansiz"})[c]||'Xato';
-function taskBtns(d,done,goFn,checkFn){
-  const w=document.createElement('div');w.className='acts';
-  if(done)w.innerHTML='<span class="done">'+ic('check',22)+'</span>';
-  else{
-    if(goFn){const g=document.createElement('button');g.className='buy go';g.textContent="O'tish";g.onclick=goFn;w.appendChild(g);}
-    const c=document.createElement('button');c.className='buy ck';c.textContent='Tekshirish';c.onclick=checkFn;w.appendChild(c);
-  }
-  d.appendChild(w);
+const taskOpened={};      // bu seansda "Bajarish/Ko'rish" bosilgan vazifalar (bosgandan keyin tugma "Tekshirish" bo'ladi)
+function taskCard(o){      // yagona ko'rinish: belgi | nom va izoh | mukofot | tugma
+  const d=document.createElement('div');d.className='tk';
+  d.innerHTML=`<div class="tic" style="background:${o.bg};color:${o.fg}">${ic(o.icon,26)}</div><div class="tin"><div class="tnm"></div><div class="tsb"></div></div><div class="tpill">${o.pill}</div><button class="tbtn${o.chk?' chk':''}"></button>`;
+  d.querySelector('.tnm').textContent=o.title;d.querySelector('.tsb').textContent=o.sub;
+  const b=d.querySelector('.tbtn');b.textContent=o.label;b.disabled=!!o.disabled;b.onclick=o.onclick;
+  return d;
 }
 function renderAds(){
   $('adlist').innerHTML='';$('myads').innerHTML='';
   s.ads.forEach(a=>{
-    const d=document.createElement('div');d.className='card';
-    d.innerHTML=`<div class="ico" style="background:linear-gradient(135deg,#fb7185,#e11d48)">${ic('megaphone',24)}</div><div class="info"><div class="nm"></div><div class="sub">Mukofot: +${a.price} ${dia(14)} · qoldi: ${a.need-a.done}</div></div>`;
-    d.querySelector('.nm').textContent=a.channel;
-    taskBtns(d,false,()=>openCh(a.channel),()=>act('ad_check',a.id));
-    $('adlist').appendChild(d);
+    const k='ad'+a.id,opened=!!taskOpened[k];
+    $('adlist').appendChild(taskCard({icon:'megaphone',bg:'rgba(251,113,133,.16)',fg:'#fb7185',title:a.channel,sub:`Reklama · qoldi ${a.need-a.done}`,pill:`+${a.price} ${dia(14)}`,
+      label:opened?'Tekshirish':'Bajarish',chk:opened,
+      onclick:()=>{if(!opened){taskOpened[k]=true;openCh(a.channel);renderTasks();}else act('ad_check',a.id);}}));
   });
   $('myh').hidden=!s.myAds.length;
   s.myAds.forEach(a=>{
@@ -799,16 +806,19 @@ function openTaskLink(t){
 function renderTasks(){
   if(!s)return;
   $('tasks').innerHTML='';renderAds();
+  const COL={channel:['rgba(56,189,248,.16)','#38bdf8'],bot:['rgba(167,139,250,.16)','#a78bfa'],video:['rgba(251,113,133,.16)','#fb7185'],site:['rgba(251,191,36,.16)','#fbbf24']};
   (s.atasks||[]).forEach(t=>{
-    const d=document.createElement('div');d.className='card';
-    const left=t.type==='channel'?null:taskLeft(t),rw=`+${fmt(t.reward)} ${t.reward_kind==='diamond'?dia(14):coin(14)}`;
-    const extra=[t.max>0?`qoldi ${t.max-t.done}`:'',left===null?'':left>0?`kuting ${left} s`:'tayyor'].filter(Boolean).join(' · ');
-    d.innerHTML=`<div class="ico">${ic(TT[t.type][0],24)}</div><div class="info"><div class="nm"></div><div class="sub">${TT[t.type][1]} · Mukofot: ${rw}${extra?' · '+extra:''}</div></div>`;
-    d.querySelector('.nm').textContent=t.title;
-    taskBtns(d,false,()=>{openTaskLink(t);if(t.type!=='channel')act('task_go',t.id);},()=>act('task_check',t.id));
-    $('tasks').appendChild(d);
+    const timed=t.type!=='channel',left=timed?taskLeft(t):null,opened=!!(taskOpened[t.id]||t.started),wait=opened&&timed&&left>0;
+    const label=!opened?(t.type==='video'?"Ko'rish":'Bajarish'):wait?`Kuting ${left}s`:'Tekshirish';
+    $('tasks').appendChild(taskCard({icon:TT[t.type][0],bg:COL[t.type][0],fg:COL[t.type][1],title:t.title,
+      sub:TT[t.type][1]+(t.max>0?` · ${t.done}/${t.max}`:''),pill:`+${fmt(t.reward)} ${t.reward_kind==='diamond'?dia(14):coin(14)}`,
+      label,chk:opened&&!wait,disabled:wait,
+      onclick:()=>{if(!opened){taskOpened[t.id]=true;openTaskLink(t);act('task_go',t.id);}else act('task_check',t.id);}}));
   });
 }
+// Mini App'ga qaytganda vazifalar yangilanadi (tugma "Tekshirish" holatida turadi)
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&s&&!$('v-tk').hidden)renderTasks();});
+if(tg&&tg.onEvent)tg.onEvent('activated',()=>{if(s&&!$('v-tk').hidden)renderTasks();});
 setInterval(()=>{if(!s||$('v-tk').hidden)return;if((s.atasks||[]).some(t=>t.type!=='channel'&&t.started&&taskLeft(t)>0))renderTasks();},1000);
 let ntType='channel',ntKind='coin';
 const NT_PH={channel:"@kanal_username (bot kanalda admin bo'lishi shart)",bot:'@bot_username yoki https://t.me/bot?start=...',video:'Video havolasi (https://...)',site:'Sayt havolasi (https://...)'};
