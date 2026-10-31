@@ -196,3 +196,9 @@ Boost sahifasidagi ro'yxat olib tashlandi. Endi **Profil** bo'limining eng oxiri
 - `/start` bosilganda bot **rasm** (`public/start.jpg`) yuboradi, rasm ostida iqtibosli (blockquote) matn va **"O'ynash"** tugmasi turadi.
 - Rasm 3 bosqichda yuboriladi: 1) havola orqali (`https://SIZNING-SERVIS/start.jpg`, Telegram o'zi oladi), 2) to'g'ridan-to'g'ri yuklash, 3) bo'lmasa faqat matn. Birinchi muvaffaqiyatli yuborishdan keyin Telegram `file_id` si eslab qolinadi va keyingi `/start` lar tezroq ishlaydi.
 - Rasmni almashtirish uchun `public/start.jpg` faylini boshqasiga almashtiring (nomi o'zgarmasin). Matnni o'zgartirish: `server.js` dagi `START_TEXT`. Rasm tagidagi matn 1024 belgidan oshmasligi kerak.
+
+## Vazifalar: yangi ko'rinish
+- Har bir vazifa bir qatorli kartochka: **belgi | nomi va izoh (masalan "Kanal · 12/100") | mukofot (ramkali yashil belgi) | bitta tugma**.
+- Tugma avval **"Bajarish"** (video uchun **"Ko'rish"**). Bosilsa, kanal, bot, reklama yoki saytga o'tadi. Mini App'ga qaytganda tugma **"Tekshirish"** (yashil) bo'lib turadi.
+  Bot, video va sayt vazifalarida belgilangan vaqt o'tmaguncha tugma **"Kuting 10s"** ko'rinishida (bosilmaydi), vaqt tugagach "Tekshirish" bo'ladi.
+- Ilova yopilib qayta ochilsa ham, boshlangan vazifa "Tekshirish" holatida qoladi (server eslab qoladi). Foydalanuvchilar qo'ygan kanal reklamalari ham shu ko'rinishda.
