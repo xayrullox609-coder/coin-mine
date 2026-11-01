@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<meta name="theme-color" content="#000000">
+<title>Admin panel</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+  :root{--bg:#000;--card:#111118;--fg:#fff;--muted:#9a9ab2;--line:#26262f;--blue:#2f7bff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+  html,body{margin:0;min-height:100%;background:#000}
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  body{color:var(--fg);font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:18px 14px 40px}
+  h1{font-size:22px;margin:0 0 4px}
+  .sub{color:var(--muted);font-size:13px}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:14px;margin:12px 0}
+  .stat{display:flex;justify-content:space-between;align-items:center;font-weight:700}
+  .stat b{font-size:22px;color:#4ade80}
+  .seg{display:flex;gap:6px;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:4px;margin:14px 0 4px}
+  .seg button{flex:1;padding:11px;border:0;border-radius:10px;background:none;color:var(--muted);font:inherit;font-weight:800;cursor:pointer}
+  .seg button.on{background:var(--blue);color:#fff}
+  label.t{display:block;font-size:13px;color:var(--muted);margin:10px 0 6px}
+  input[type=text],input[type=number],textarea{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:#07070b;color:#fff;font:inherit}
+  textarea{min-height:130px;resize:vertical}
+  input:focus,textarea:focus{outline:2px solid var(--blue);border-color:transparent}
+  .chk{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:14px}
+  .chk input{width:20px;height:20px;accent-color:var(--blue)}
+  .row{display:flex;gap:8px}
+  button.p{flex:1;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#2f7bff,#7a3cff);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+  button.s{flex:1;padding:14px;border:1px solid var(--line);border-radius:14px;background:#17171f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
+  button:disabled{opacity:.5;cursor:default}
+  .res{margin-top:12px;padding:12px;border-radius:12px;font-size:14px;line-height:1.45;display:none}
+  .res.ok{display:block;background:rgba(74,222,128,.12);border:1px solid #166534;color:#86efac}
+  .res.err{display:block;background:rgba(248,113,113,.12);border:1px solid #7f1d1d;color:#fca5a5}
+  .bar{height:12px;border-radius:6px;background:#26262f;overflow:hidden;margin:10px 0 6px}
+  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f7bff,#4ade80);transition:width .3s}
+  .cnt{font-size:12px;color:var(--muted);text-align:right}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+  <h1>Admin panel</h1>
+  <div class="sub">Botdan xabar yuborish</div>
+
+  <div id="deny" class="card" hidden></div>
+
+  <div id="main" hidden>
+    <div class="card stat"><span>Foydalanuvchilar</span><b id="users">0</b></div>
+
+    <div class="seg" id="seg"><button data-t="user" class="on">Foydalanuvchiga</button><button data-t="all">Hammaga</button></div>
+
+    <!-- ID bo'yicha -->
+    <div class="card" id="tab-user">
+      <label class="t">Foydalanuvchi ID</label>
+      <input type="number" id="uid" inputmode="numeric" placeholder="Masalan 123456789">
+      <label class="t">Xabar matni</label>
+      <textarea id="utext" maxlength="4000" placeholder="Xabarni yozing..."></textarea>
+      <label class="chk"><input type="checkbox" id="uhtml"> HTML formatlash (&lt;b&gt;qalin&lt;/b&gt;, &lt;i&gt;qiyshiq&lt;/i&gt;, &lt;a href=&quot;...&quot;&gt;havola&lt;/a&gt;)</label>
+      <label class="chk"><input type="checkbox" id="ubtn"> "O'ynash" tugmasi qo'shilsin</label>
+      <div class="row"><button class="p" id="usend">Yuborish</button></div>
+      <div class="res" id="ures"></div>
+    </div>
+
+    <!-- Hammaga -->
+    <div class="card" id="tab-all" hidden>
+      <label class="t">Xabar matni</label>
+      <textarea id="btext" maxlength="4000" placeholder="Hamma foydalanuvchilarga yuboriladigan xabar..."></textarea>
+      <div class="cnt"><span id="blen">0</span>/4000</div>
+      <label class="chk"><input type="checkbox" id="bhtml"> HTML formatlash (&lt;b&gt;, &lt;i&gt;, &lt;a href&gt;)</label>
+      <label class="chk"><input type="checkbox" id="bbtn"> "O'ynash" tugmasi qo'shilsin</label>
+      <div class="row">
+        <button class="s" id="btest">Sinov (o'zimga)</button>
+        <button class="p" id="bsend">Hammaga yuborish</button>
+      </div>
+      <div class="res" id="bres"></div>
+      <div id="prog" hidden>
+        <div class="bar"><i id="pbar"></i></div>
+        <div class="sub" id="ptxt"></div>
+      </div>
+    </div>
+  </div>
+
+<script>
+const tg=window.Telegram&&window.Telegram.WebApp;
+if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#000000');tg.setBackgroundColor('#000000');}catch(e){}}
+const DEMO=location.search.includes('demo');   // faqat ko'rib chiqish uchun: hech narsa yuborilmaydi
+const $=id=>document.getElementById(id);
+const fmt=n=>String(Math.floor(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00A0');
+const alertMsg=m=>tg&&tg.showAlert?tg.showAlert(m):alert(m);
+const confirmMsg=(m,cb)=>tg&&tg.showConfirm?tg.showConfirm(m,ok=>{if(ok)cb()}):(confirm(m)&&cb());
+
+let demoState={sent:0,total:128};
+async function api(action,data={}){
+  if(DEMO){
+    await new Promise(r=>setTimeout(r,350));
+    if(action==='stats')return{ok:true,users:128,bcast:null};
+    if(action==='send_user'||action==='test')return{ok:true,info:'Demo: xabar yuborilmadi (ko\'rib chiqish rejimi)'};
+    if(action==='broadcast'){demoState={sent:0,total:128};return{ok:true,total:128};}
+    if(action==='bcast_status'){demoState.sent=Math.min(demoState.total,demoState.sent+22);return{ok:true,bcast:{total:128,sent:demoState.sent,failed:demoState.sent>60?3:0,done:demoState.sent>=128}};}
+  }
+  const r=await fetch('/api/admin',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({initData:tg?tg.initData:'',action,...data})});
+  if(r.status===401||r.status===403)throw new Error('forbidden');
+  if(!r.ok)throw new Error('server');
+  return r.json();
+}
+function show(el,ok,text){el.className='res '+(ok?'ok':'err');el.textContent=text;}
+
+// Tablar
+$('seg').onclick=e=>{const b=e.target.closest('button');if(!b)return;
+  [...$('seg').children].forEach(x=>x.classList.toggle('on',x===b));
+  $('tab-user').hidden=b.dataset.t!=='user';$('tab-all').hidden=b.dataset.t!=='all';};
+$('btext').oninput=()=>{$('blen').textContent=$('btext').value.length;};
+
+// ID bo'yicha yuborish
+$('usend').onclick=async()=>{
+  const id=$('uid').value.trim(),text=$('utext').value.trim();
+  if(!/^\d{5,15}$/.test(id)){show($('ures'),false,"Foydalanuvchi ID'sini to'g'ri yozing (faqat raqam).");return;}
+  if(!text){show($('ures'),false,'Xabar matnini yozing.');return;}
+  $('usend').disabled=true;$('ures').className='res';
+  try{
+    const r=await api('send_user',{id,text,html:$('uhtml').checked,button:$('ubtn').checked});
+    show($('ures'),r.ok,r.ok?(r.info||'Xabar yuborildi.'):('Yuborilmadi: '+(r.error||'xato')));
+    if(r.ok)$('utext').value='';
+  }catch(e){show($('ures'),false,e.message==='forbidden'?"Ruxsat yo'q.":'Server xatosi, qayta urinib ko\'ring.');}
+  $('usend').disabled=false;
+};
+
+// Sinov va ommaviy yuborish
+$('btest').onclick=async()=>{
+  const text=$('btext').value.trim();
+  if(!text){show($('bres'),false,'Xabar matnini yozing.');return;}
+  $('btest').disabled=true;
+  try{const r=await api('test',{text,html:$('bhtml').checked,button:$('bbtn').checked});
+    show($('bres'),r.ok,r.ok?'Sinov xabari o\'zingizga yuborildi.':('Yuborilmadi: '+(r.error||'xato')));}
+  catch(e){show($('bres'),false,'Xato, qayta urinib ko\'ring.');}
+  $('btest').disabled=false;
+};
+let poll=null;
+function drawProg(b){
+  $('prog').hidden=false;
+  const pct=b.total?Math.round((b.sent+b.failed)/b.total*100):100;
+  $('pbar').style.width=pct+'%';
+  $('ptxt').textContent=`${b.done?'Tugadi':'Yuborilmoqda'}: ${fmt(b.sent)} ta yuborildi, ${fmt(b.failed)} ta xato (${fmt(b.total)} dan, ${pct}%)`;
+}
+async function watch(){
+  clearInterval(poll);
+  poll=setInterval(async()=>{
+    try{const r=await api('bcast_status');if(!r.bcast)return;drawProg(r.bcast);
+      if(r.bcast.done){clearInterval(poll);$('bsend').disabled=false;show($('bres'),true,`Tayyor: ${fmt(r.bcast.sent)} ta foydalanuvchiga yuborildi, ${fmt(r.bcast.failed)} tasiga yetmadi (botni bloklaganlar yoki o'chirilgan akkauntlar).`);}}
+    catch(e){}
+  },2000);
+}
+$('bsend').onclick=()=>{
+  const text=$('btext').value.trim();
+  if(!text){show($('bres'),false,'Xabar matnini yozing.');return;}
+  confirmMsg(`Xabar ${$('users').textContent} ta foydalanuvchiga yuboriladi. Davom etasizmi?`,async()=>{
+    $('bsend').disabled=true;$('bres').className='res';
+    try{
+      const r=await api('broadcast',{text,html:$('bhtml').checked,button:$('bbtn').checked});
+      if(!r.ok){show($('bres'),false,r.error==='busy'?'Oldingi yuborish hali tugamagan, kuting.':('Boshlanmadi: '+(r.error||'xato')));$('bsend').disabled=false;return;}
+      drawProg({total:r.total,sent:0,failed:0,done:false});watch();
+    }catch(e){show($('bres'),false,'Xato, qayta urinib ko\'ring.');$('bsend').disabled=false;}
+  });
+};
+
+// Boshlash
+(async()=>{
+  if(!DEMO&&!(tg&&tg.initData)){$('deny').hidden=false;$('deny').textContent="Bu sahifa faqat Telegram ichida, botga /admin buyrug'ini yuborib ochiladi.";return;}
+  try{
+    const r=await api('stats');
+    $('users').textContent=fmt(r.users);$('main').hidden=false;
+    if(r.bcast){drawProg(r.bcast);if(!r.bcast.done){$('bsend').disabled=true;watch();}}
+  }catch(e){$('deny').hidden=false;$('deny').textContent="Ruxsat yo'q: bu sahifa faqat admin uchun.";}
+})();
+</script>
+</body>
+</html>
