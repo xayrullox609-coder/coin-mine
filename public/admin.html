@@ -4,12 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="color-scheme" content="dark">
-<meta name="theme-color" content="#000000">
+<meta name="theme-color" content="#03070f">
 <title>Admin panel</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <style>
-  :root{--bg:#000;--card:#111118;--fg:#fff;--muted:#9a9ab2;--line:#26262f;--blue:#2f7bff;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
-  html,body{margin:0;min-height:100%;background:#000}
+  :root{--bg:#03070f;--card:#0b1422;--fg:#eaf6ff;--muted:#8fb0cc;--line:rgba(170,220,255,.16);--blue:#38bdf8;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:dark}
+  html,body{margin:0;min-height:100%;background:#03070f}
   *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
   body{color:var(--fg);font-family:system-ui,-apple-system,sans-serif;max-width:520px;margin:0 auto;padding:18px 14px 40px}
   h1{font-size:22px;margin:0 0 4px}
@@ -27,7 +27,7 @@
   .chk{display:flex;align-items:center;gap:10px;margin:10px 0;font-size:14px}
   .chk input{width:20px;height:20px;accent-color:var(--blue)}
   .row{display:flex;gap:8px}
-  button.p{flex:1;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#2f7bff,#7a3cff);color:#fff;font:inherit;font-weight:800;cursor:pointer}
+  button.p{flex:1;padding:14px;border:0;border-radius:14px;background:linear-gradient(135deg,#38bdf8,#4f7bff);color:#04243b;font:inherit;font-weight:800;cursor:pointer}
   button.s{flex:1;padding:14px;border:1px solid var(--line);border-radius:14px;background:#17171f;color:#fff;font:inherit;font-weight:700;cursor:pointer}
   button:disabled{opacity:.5;cursor:default}
   .res{margin-top:12px;padding:12px;border-radius:12px;font-size:14px;line-height:1.45;display:none}
@@ -36,6 +36,8 @@
   .bar{height:12px;border-radius:6px;background:#26262f;overflow:hidden;margin:10px 0 6px}
   .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#2f7bff,#4ade80);transition:width .3s}
   .cnt{font-size:12px;color:var(--muted);text-align:right}
+  body{background:radial-gradient(ellipse at 50% -8%,rgba(56,189,248,.24),transparent 55%),#03070f}
+  .seg button.on{color:#04243b}
   [hidden]{display:none!important}
 </style>
 </head>
@@ -83,7 +85,7 @@
 
 <script>
 const tg=window.Telegram&&window.Telegram.WebApp;
-if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#000000');tg.setBackgroundColor('#000000');}catch(e){}}
+if(tg){tg.ready();tg.expand();try{tg.setHeaderColor('#03070f');tg.setBackgroundColor('#03070f');}catch(e){}}
 const DEMO=location.search.includes('demo');   // faqat ko'rib chiqish uchun: hech narsa yuborilmaydi
 const $=id=>document.getElementById(id);
 const fmt=n=>String(Math.floor(Number(n)||0)).replace(/\B(?=(\d{3})+(?!\d))/g,'\u00A0');
