@@ -593,6 +593,72 @@ bot.start(async (ctx) => {
   } catch (e) { console.error('referal xatosi:', e.message); }
   await sendStart(ctx);
 });
+// ---------- Admin Mini App (public/admin.html): botga /admin yozilganda ochiladi ----------
+bot.command('admin', (ctx) => {
+  if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return ctx.reply("Ruxsat yo'q.");
+  return ctx.reply('Admin paneli (xabar yuborish):', Markup.inlineKeyboard([Markup.button.webApp('Admin panelni ochish', `${String(WEBAPP_URL).replace(/\/$/, '')}/admin.html`)]));
+});
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+function sendErr(m) {
+  m = String(m || '');
+  if (/blocked/i.test(m)) return 'foydalanuvchi botni bloklagan';
+  if (/chat not found|user not found/i.test(m)) return 'foydalanuvchi botni ishga tushirmagan yoki topilmadi';
+  if (/deactivated/i.test(m)) return "akkaunt o'chirilgan";
+  if (/can't parse entities|parse/i.test(m)) return "HTML formatlash noto'g'ri (teglarni tekshiring yoki formatlashni o'chiring)";
+  return m.replace(/bot\d+:[A-Za-z0-9_\-\[\]]+/g, 'bot***');
+}
+async function sendOne(id, text, opts) {
+  for (let t = 0; t < 2; t++) {
+    try { await bot.telegram.sendMessage(id, text, opts); return { ok: true }; }
+    catch (e) {
+      const ra = e.response && e.response.parameters && e.response.parameters.retry_after;   // Telegram "biroz kuting" desa, kutib qayta uriniladi
+      if (typeof ra === 'number' && t === 0) { await sleep((ra + 1) * 1000); continue; }
+      return { ok: false, error: sendErr(e.message) };
+    }
+  }
+}
+const sendOpts = (b) => ({ ...(b.html ? { parse_mode: 'HTML' } : {}), ...(b.button ? Markup.inlineKeyboard([Markup.button.webApp("O'ynash", WEBAPP_URL)]) : {}) });
+let bcast = null;   // oxirgi ommaviy yuborish holati { total, sent, failed, done }
+async function runBroadcast(ids, text, opts) {
+  for (const id of ids) {
+    const r = await sendOne(id, text, opts);
+    if (r.ok) bcast.sent++; else bcast.failed++;
+    await sleep(50);                  // sekundiga ~20 ta: Telegram chegarasidan (30) past
+  }
+  bcast.done = true;
+}
+app.post('/api/admin', async (req, res) => {
+  const b = req.body || {};
+  const u = verify(b.initData || '');
+  if (!u) return res.status(401).json({ error: 'auth' });
+  if (!ADMIN_ID || String(u.id) !== String(ADMIN_ID)) return res.status(403).json({ error: 'forbidden' });
+  if (limited(u.id)) return res.status(429).json({ error: 'slow' });
+  const text = String(b.text || '').trim();
+  try {
+    if (b.action === 'stats') {
+      const n = Number((await pool.query('SELECT COUNT(*) AS n FROM users')).rows[0].n);
+      return res.json({ ok: true, users: n, bcast });
+    }
+    if (b.action === 'bcast_status') return res.json({ ok: true, bcast });
+    if (['send_user', 'test', 'broadcast'].includes(b.action) && (text.length < 1 || text.length > 4000)) return res.json({ ok: false, error: 'Xabar 1 dan 4000 belgigacha bo\'lsin' });
+    if (b.action === 'send_user') {
+      const id = String(b.id || '').trim();
+      if (!/^\d{5,15}$/.test(id)) return res.json({ ok: false, error: "ID noto'g'ri" });
+      const r = await sendOne(id, text, sendOpts(b));
+      return res.json(r.ok ? { ok: true, info: `Xabar yuborildi (ID ${id}).` } : r);
+    }
+    if (b.action === 'test') return res.json(await sendOne(u.id, text, sendOpts(b)));
+    if (b.action === 'broadcast') {
+      if (bcast && !bcast.done) return res.json({ ok: false, error: 'busy' });
+      const ids = (await pool.query('SELECT id FROM users ORDER BY id')).rows.map((r) => r.id);
+      bcast = { total: ids.length, sent: 0, failed: 0, done: false };
+      runBroadcast(ids, text, sendOpts(b)).catch((e) => { console.error('ommaviy yuborish xatosi:', e.message); bcast.done = true; });
+      return res.json({ ok: true, total: ids.length });
+    }
+    return res.status(400).json({ error: 'action' });
+  } catch (e) { console.error('admin api xatosi:', e.message); return res.status(500).json({ error: 'server' }); }
+});
+
 bot.command('stats', async (ctx) => {
   if (!ADMIN_ID || String(ctx.from.id) !== String(ADMIN_ID)) return;
   const r = (await pool.query('SELECT COUNT(*) AS n, COALESCE(SUM(coins),0) AS c, COALESCE(SUM(refs),0) AS f FROM users')).rows[0];

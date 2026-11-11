@@ -202,3 +202,21 @@ Boost sahifasidagi ro'yxat olib tashlandi. Endi **Profil** bo'limining eng oxiri
 - Tugma avval **"Bajarish"** (video uchun **"Ko'rish"**). Bosilsa, kanal, bot, reklama yoki saytga o'tadi. Mini App'ga qaytganda tugma **"Tekshirish"** (yashil) bo'lib turadi.
   Bot, video va sayt vazifalarida belgilangan vaqt o'tmaguncha tugma **"Kuting 10s"** ko'rinishida (bosilmaydi), vaqt tugagach "Tekshirish" bo'ladi.
 - Ilova yopilib qayta ochilsa ham, boshlangan vazifa "Tekshirish" holatida qoladi (server eslab qoladi). Foydalanuvchilar qo'ygan kanal reklamalari ham shu ko'rinishda.
+
+## Admin Mini App: xabar yuborish (public/admin.html)
+- Botga **/admin** yozilsa (faqat `ADMIN_ID` egasi uchun), "Admin panelni ochish" tugmasi chiqadi. U alohida `admin.html` Mini App'ni ochadi.
+- **Foydalanuvchiga**: ID va matn yoziladi, bot o'sha foydalanuvchiga xabar yuboradi. ID'ni bilish uchun foydalanuvchi botni ishga tushirgan bo'lishi kerak.
+- **Hammaga**: matn yoziladi, "Sinov (o'zimga)" tugmasi avval faqat sizga yuboradi, "Hammaga yuborish" esa tasdiqdan keyin hamma foydalanuvchiga yuboradi (sekundiga ~20 ta, progress ko'rinib turadi, bir vaqtda bitta yuborish).
+  Botni bloklagan yoki akkaunti o'chgan foydalanuvchilarga xabar bormaydi (xato soniga qo'shiladi).
+- Ixtiyoriy: HTML formatlash (`<b>`, `<i>`, `<a href>`) va "O'ynash" tugmasi.
+- Server tekshiruvi: so'rov Telegram imzosi va `ADMIN_ID` bilan tasdiqlanadi, boshqa foydalanuvchilarga "Ruxsat yo'q".
+- Eslatma: ommaviy xabarni ko'p yubormang, Telegram spamga qarshi qoidalari bor (foydalanuvchilar shikoyat qilsa, bot cheklanishi mumkin).
+
+## Dizayn yangilandi
+Qora fon saqlandi. Kartochkalar shisha ko'rinishida, asosiy rang ko'k-binafsha, valyuta (coin, olmos, tanga) tilla rangda. Pastki menyuda tanlangan bo'lim yorug' chiqadi, tanga atrofida nafas oluvchi yorug'lik va yengil harakat bor, bo'limlar silliq paydo bo'ladi, mukofot olinganda konfetti chiqadi.
+
+## Qishki dizayn va yagona tanga
+- **Hamma tanga bitta rasm bilan almashtirildi**: muzlik "CM" tangasi. Bu tap sahifasidagi katta tanga, do'kondagi hamma 9 daraja, tepadagi panel, balans va kichik tanga belgilari (mukofot, tikish, reyting va h.k.) uchun bir xil. Darajalarni nomi (LEVEL 1-9) va "x" ko'paytirgichi ajratib turadi.
+  Rasmni almashtirish: `public/index.html` dagi `.ci.g` qoidasidagi base64 qiymatni almashtiring.
+- **Qishki mavzu**: deyarli qora-ko'k tungi fon (yuqorida sovuq yorug'lik), muz kabi shishasimon kartochkalar, muzdek ko'k tugmalar va yorug'lik, tanga atrofida ko'k halo, **yog'ayotgan qor** (bosishga xalaqit bermaydi, telefon "harakatni kamaytirish" rejimida o'chadi).
+  Mukofot olinganda konfetti o'rniga qor parchalari sochiladi. `admin.html` ham shu mavzuda.
