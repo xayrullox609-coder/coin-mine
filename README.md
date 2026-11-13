@@ -220,3 +220,6 @@ Qora fon saqlandi. Kartochkalar shisha ko'rinishida, asosiy rang ko'k-binafsha, 
   Rasmni almashtirish: `public/index.html` dagi `.ci.g` qoidasidagi base64 qiymatni almashtiring.
 - **Qishki mavzu**: deyarli qora-ko'k tungi fon (yuqorida sovuq yorug'lik), muz kabi shishasimon kartochkalar, muzdek ko'k tugmalar va yorug'lik, tanga atrofida ko'k halo, **yog'ayotgan qor** (bosishga xalaqit bermaydi, telefon "harakatni kamaytirish" rejimida o'chadi).
   Mukofot olinganda konfetti o'rniga qor parchalari sochiladi. `admin.html` ham shu mavzuda.
+
+## Promokod rasmi: qishki dizayn
+Kanalga yuboriladigan promokod rasmi endi qishki: chuqur ko'k tungi fon, yog'ayotgan qor va qor parchalari, muzli ramka, tepada muzlik "CM" tangasi, o'rtada muzdek yorug'lik bilan **promokod** yozilgan shishasimon panel, pastda "Profil → Promokod bo'limiga kiriting". Rasm admin brauzerida chiziladi, shuning uchun alohida rasm fayli yoki server kutubxonasi kerak emas (eski yashil rasm olib tashlandi).
